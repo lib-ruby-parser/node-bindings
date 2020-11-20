@@ -1,0 +1,3 @@
+[submodule "lib-ruby-parser-cpp-bindings"]
+	path = lib-ruby-parser-cpp-bindings
+	url = git@github.com:lib-ruby-parser/cpp-bindings.git
