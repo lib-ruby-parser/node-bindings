@@ -36,6 +36,10 @@ namespace lib_ruby_parser_node
     {
         exports.Set(String::New(env, "parse"),
                     Function::New(env, parse));
+
+        InitCustomTypes(env, exports);
+        InitNodeTypes(env, exports);
+
         return exports;
     }
 

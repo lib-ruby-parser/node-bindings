@@ -10,16 +10,92 @@ using namespace Napi;
 
 namespace lib_ruby_parser_node
 {
+    FunctionReference LocCtor;
+    FunctionReference RangeCtor;
+    FunctionReference TokenCtor;
+    FunctionReference DiagnosticCtor;
+    FunctionReference CommentCtor;
+    FunctionReference MagicCommentCtor;
+    FunctionReference ParserResultCtor;
+
+    Value LocCtorFn(const CallbackInfo &info)
+    {
+        Object self = info.This().As<Object>();
+        Env env = info.Env();
+        self.Set("begin", info[0]);
+        self.Set("end", info[1]);
+        return env.Null();
+    }
+
+    Value RangeCtorFn(const CallbackInfo &info)
+    {
+        Object self = info.This().As<Object>();
+        Env env = info.Env();
+        self.Set("begin_pos", info[0]);
+        self.Set("end_pos", info[1]);
+        return env.Null();
+    }
+
+    Value TokenCtorFn(const CallbackInfo &info)
+    {
+        Object self = info.This().As<Object>();
+        Env env = info.Env();
+        self.Set("name", info[0]);
+        self.Set("value", info[1]);
+        self.Set("loc", info[2]);
+        return env.Null();
+    }
+
+    Value DiagnosticCtorFn(const CallbackInfo &info)
+    {
+        Object self = info.This().As<Object>();
+        Env env = info.Env();
+        self.Set("level", info[0]);
+        self.Set("message", info[1]);
+        self.Set("range", info[2]);
+        return env.Null();
+    }
+
+    Value CommentCtorFn(const CallbackInfo &info)
+    {
+        Object self = info.This().As<Object>();
+        Env env = info.Env();
+        self.Set("kind", info[0]);
+        self.Set("location", info[1]);
+        return env.Null();
+    }
+
+    Value MagicCommentCtorFn(const CallbackInfo &info)
+    {
+        Object self = info.This().As<Object>();
+        Env env = info.Env();
+        self.Set("kind", info[0]);
+        self.Set("key_l", info[1]);
+        self.Set("value_l", info[2]);
+        return env.Null();
+    }
+
+    Value ParserResultCtorFn(const CallbackInfo &info)
+    {
+        Object self = info.This().As<Object>();
+        Env env = info.Env();
+        self.Set("ast", info[0]);
+        self.Set("tokens", info[1]);
+        self.Set("diagnostics", info[2]);
+        self.Set("comments", info[3]);
+        self.Set("magic_comments", info[4]);
+        self.Set("input", info[5]);
+        return env.Null();
+    }
+
     Value convert(std::unique_ptr<Loc> loc, Env env)
     {
         if (!loc)
         {
             return env.Null();
         }
-        Object obj = Object::New(env);
-        obj.Set("begin", loc->begin);
-        obj.Set("end", loc->end);
-        return obj;
+        return LocCtor.New({Value::From(env, loc->begin),
+                            Value::From(env, loc->end)});
     }
 
     Value convert(std::unique_ptr<Range> range, Env env)
@@ -28,19 +104,19 @@ namespace lib_ruby_parser_node
         {
             return env.Null();
         }
-        Object obj = Object::New(env);
-        obj.Set("begin", range->begin_pos);
-        obj.Set("end", range->end_pos);
-        return obj;
+        return RangeCtor.New({
+            Value::From(env, range->begin_pos),
+            Value::From(env, range->end_pos),
+        });
     }
 
     Value convert(Token token, Env env)
     {
-        Object obj = Object::New(env);
-        obj.Set("name", String::New(env, token.name()));
-        obj.Set("value", String::New(env, token.token_value));
-        obj.Set("loc", convert(std::move(token.loc), env));
-        return obj;
+        return TokenCtor.New({
+            Value::From(env, token.name()),
+            Value::From(env, token.token_value),
+            convert(std::move(token.loc), env),
+        });
     }
 
     Value convert(std::vector<Token> tokens, Env env)
@@ -55,19 +131,21 @@ namespace lib_ruby_parser_node
 
     Value convert(Diagnostic diagnostic, Env env)
     {
-        Object obj = Object::New(env);
+        String level;
         switch (diagnostic.level)
         {
         case ErrorLevel::WARNING:
-            obj.Set("level", String::New(env, "warning"));
+            level = String::New(env, "warning");
             break;
         case ErrorLevel::ERROR:
-            obj.Set("level", String::New(env, "error"));
+            level = String::New(env, "error");
             break;
         }
-        obj.Set("message", String::New(env, diagnostic.message));
-        obj.Set("range", convert(std::move(diagnostic.range), env));
-        return obj;
+        return DiagnosticCtor.New({
+            level,
+            String::New(env, diagnostic.message),
+            convert(std::move(diagnostic.range), env),
+        });
     }
 
     Value convert(std::vector<Diagnostic> diagnostics, Env env)
@@ -82,21 +160,23 @@ namespace lib_ruby_parser_node
 
     Value convert(Comment comment, Env env)
     {
-        Object obj = Object::New(env);
+        String kind;
         switch (comment.kind)
         {
         case CommentType::INLINE:
-            obj.Set("kind", String::New(env, "inline"));
+            kind = String::New(env, "inline");
             break;
         case CommentType::DOCUMENT:
-            obj.Set("kind", String::New(env, "document"));
+            kind = String::New(env, "document");
             break;
         case CommentType::UNKNOWN:
-            obj.Set("kind", String::New(env, "unknown"));
+            kind = String::New(env, "unknown");
             break;
         }
-        obj.Set("location", convert(std::move(comment.location), env));
-        return obj;
+        return CommentCtor.New({
+            kind,
+            convert(std::move(comment.location), env),
+        });
     }
 
     Value convert(std::vector<Comment> comments, Env env)
@@ -111,22 +191,24 @@ namespace lib_ruby_parser_node
 
     Value convert(MagicComment magic_comment, Env env)
     {
-        Object obj = Object::New(env);
+        String kind;
         switch (magic_comment.kind)
         {
         case MagicCommentKind::ENCODING:
-            obj.Set("kind", String::New(env, "encoding"));
+            kind = String::New(env, "encoding");
             break;
         case MagicCommentKind::FROZEN_STRING_LITERAL:
-            obj.Set("kind", String::New(env, "frozen-string-literal"));
+            kind = String::New(env, "frozen-string-literal");
             break;
         case MagicCommentKind::WARN_INDENT:
-            obj.Set("kind", String::New(env, "warn-indent"));
+            kind = String::New(env, "warn-indent");
             break;
         }
-        obj.Set("key_l", convert(std::move(magic_comment.key_l), env));
-        obj.Set("value_l", convert(std::move(magic_comment.value_l), env));
-        return obj;
+        return MagicCommentCtor.New({
+            kind,
+            convert(std::move(magic_comment.key_l), env),
+            convert(std::move(magic_comment.value_l), env),
+        });
     }
 
     Value convert(std::vector<MagicComment> magic_comments, Env env)
@@ -145,23 +227,54 @@ namespace lib_ruby_parser_node
         {
             return env.Null();
         }
-        Object obj = Object::New(env);
+        return ParserResultCtor.New({
+            convert(std::move(result->ast), env),
+            convert(std::move(result->tokens), env),
+            convert(std::move(result->diagnostics), env),
+            convert(std::move(result->comments), env),
+            convert(std::move(result->magic_comments), env),
+            String::New(env, result->input),
+        });
+    }
 
-        auto ast = convert(std::move(result->ast), env);
-        auto tokens = convert(std::move(result->tokens), env);
-        auto diagnostics = convert(std::move(result->diagnostics), env);
-        auto comments = convert(std::move(result->comments), env);
-        auto magic_comments = convert(std::move(result->magic_comments), env);
-        auto input = String::New(env, result->input);
+    void InitCustomTypes(Env env, Object exports)
+    {
+        Napi::Function fn;
 
-        obj.Set("ast", ast);
-        obj.Set("tokens", tokens);
-        obj.Set("diagnostics", diagnostics);
-        obj.Set("comments", comments);
-        obj.Set("magic_comments", magic_comments);
-        obj.Set("input", input);
+        fn = Function::New(env, LocCtorFn, "Loc");
+        LocCtor = Persistent(fn);
+        LocCtor.SuppressDestruct();
+        exports.Set("Loc", fn);
 
-        return obj;
+        fn = Function::New(env, RangeCtorFn, "Range");
+        RangeCtor = Persistent(fn);
+        RangeCtor.SuppressDestruct();
+        exports.Set("Range", fn);
+
+        fn = Function::New(env, TokenCtorFn, "Token");
+        TokenCtor = Persistent(fn);
+        TokenCtor.SuppressDestruct();
+        exports.Set("Token", fn);
+
+        fn = Function::New(env, DiagnosticCtorFn, "Diagnostic");
+        DiagnosticCtor = Persistent(fn);
+        DiagnosticCtor.SuppressDestruct();
+        exports.Set("Diagnostic", fn);
+
+        fn = Function::New(env, CommentCtorFn, "Comment");
+        CommentCtor = Persistent(fn);
+        CommentCtor.SuppressDestruct();
+        exports.Set("Comment", fn);
+
+        fn = Function::New(env, MagicCommentCtorFn, "MagicComment");
+        MagicCommentCtor = Persistent(fn);
+        MagicCommentCtor.SuppressDestruct();
+        exports.Set("MagicComment", fn);
+
+        fn = Function::New(env, ParserResultCtorFn, "ParserResult");
+        ParserResultCtor = Persistent(fn);
+        ParserResultCtor.SuppressDestruct();
+        exports.Set("ParserResult", fn);
     }
 } // namespace lib_ruby_parser_node
 
