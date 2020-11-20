@@ -37,8 +37,8 @@ namespace lib_ruby_parser_node
     Value convert(Token token, Env env)
     {
         Object obj = Object::New(env);
-        obj.Set("token_type", token.token_type);
-        obj.Set("token_value", String::New(env, token.token_value));
+        obj.Set("name", String::New(env, token.name()));
+        obj.Set("value", String::New(env, token.token_value));
         obj.Set("loc", convert(std::move(token.loc), env));
         return obj;
     }

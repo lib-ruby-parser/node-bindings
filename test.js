@@ -67,20 +67,20 @@ assert(arg.operator_l === null)
 assert_range(arg.expression_l, 9, 12)
 
 let expected_tokens = [
-    [288, "self", [0, 4]],
-    [323, ".", [4, 5]],
-    [307, "foo", [5, 8]],
-    [391, "(", [8, 9]],
-    [314, "123", [9, 12]],
-    [358, ")", [12, 13]],
-    [0, "", [13, 13]]
+    ["kSELF", "self", [0, 4]],
+    ["tDOT", ".", [4, 5]],
+    ["tIDENTIFIER", "foo", [5, 8]],
+    ["tLPAREN2", "(", [8, 9]],
+    ["tINTEGER", "123", [9, 12]],
+    ["tRPAREN", ")", [12, 13]],
+    ["EOF", "", [13, 13]]
 ]
 
 assert(tokens.length == expected_tokens.length)
 
 for (let i = 0; i < tokens.length; i++) {
-    assert(tokens[i].token_type == expected_tokens[i][0])
-    assert(tokens[i].token_value == expected_tokens[i][1])
+    assert(tokens[i].name == expected_tokens[i][0])
+    assert(tokens[i].value == expected_tokens[i][1])
     assert(tokens[i].loc.begin == expected_tokens[i][2][0])
     assert(tokens[i].loc.end == expected_tokens[i][2][1])
 }
