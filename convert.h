@@ -12,6 +12,10 @@ namespace lib_ruby_parser_node
 {
     Value convert(std::unique_ptr<Loc> loc, Env env)
     {
+        if (!loc)
+        {
+            return env.Null();
+        }
         Object obj = Object::New(env);
         obj.Set("begin", loc->begin);
         obj.Set("end", loc->end);
@@ -20,6 +24,10 @@ namespace lib_ruby_parser_node
 
     Value convert(std::unique_ptr<Range> range, Env env)
     {
+        if (!range)
+        {
+            return env.Null();
+        }
         Object obj = Object::New(env);
         obj.Set("begin", range->begin_pos);
         obj.Set("end", range->end_pos);
@@ -133,6 +141,10 @@ namespace lib_ruby_parser_node
 
     Value convert(std::unique_ptr<ParserResult> result, Env env)
     {
+        if (!result)
+        {
+            return env.Null();
+        }
         Object obj = Object::New(env);
 
         auto ast = convert(std::move(result->ast), env);

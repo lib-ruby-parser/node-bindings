@@ -11,5 +11,5 @@ console.log(`requiring ${path_to_require}`);
 const ruby_parser = require(path_to_require);
 
 console.log(ruby_parser)
-// console.log(typeof (ruby_parser.parse(42)));
-console.log(JSON.stringify(ruby_parser.parse("# encoding: utf-8\nfoo\n # comment"), null, 4))
+// console.log(typeof (ruby_parser.parse(42, 42)));
+console.log(JSON.stringify(ruby_parser.parse("2 + 2"), null, 4))
