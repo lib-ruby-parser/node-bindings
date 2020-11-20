@@ -1,4 +1,6 @@
 #include <node.h>
+#include "lib-ruby-parser.h"
+#include <iostream>
 
 namespace demo
 {
@@ -13,6 +15,9 @@ namespace demo
 
     void parse(const FunctionCallbackInfo<Value> &args)
     {
+        auto x = lib_ruby_parser::ParserResult::from_source("foo");
+        std::cout << x->tokens[0] << std::endl;
+
         Isolate *isolate = args.GetIsolate();
         if (!args[0]->IsString())
         {

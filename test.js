@@ -1,10 +1,14 @@
-let ruby_parser;
+#!/usr/bin/env node
 
-try {
-    ruby_parser = require('./build/Release/ruby_parser.node');
-} catch (err) {
-    ruby_parser = require('./build/Debug/ruby_parser.node');
+let path_to_require = process.argv[2]
+
+if (!path_to_require) {
+    console.log('no argument specified, using debug build');
+    path_to_require = './build/Debug/ruby_parser.node';
 }
+
+console.log(`requiring ${path_to_require}`);
+const ruby_parser = require(path_to_require);
 
 console.log(ruby_parser)
 // console.log(typeof (ruby_parser.parse(42)));
