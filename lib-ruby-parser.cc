@@ -1,42 +1,44 @@
-#include <node.h>
+#include <napi.h>
 #include "lib-ruby-parser.h"
+#include "convert.h"
 #include <iostream>
 
-namespace demo
+using namespace lib_ruby_parser;
+using namespace Napi;
+
+namespace lib_ruby_parser_node
 {
-    using v8::Exception;
-    using v8::FunctionCallbackInfo;
-    using v8::Isolate;
-    using v8::Local;
-    using v8::MaybeLocal;
-    using v8::Object;
-    using v8::String;
-    using v8::Value;
-
-    void parse(const FunctionCallbackInfo<Value> &args)
+    Value parse(const CallbackInfo &info)
     {
-        auto x = lib_ruby_parser::ParserResult::from_source("foo");
-        std::cout << x->tokens[0] << std::endl;
+        Env env = info.Env();
 
-        Isolate *isolate = args.GetIsolate();
-        if (!args[0]->IsString())
+        if (info.Length() != 1)
         {
-            Local<String> err = String::NewFromUtf8(
-                                    isolate,
-                                    "argument must be a string",
-                                    v8::NewStringType::kNormal)
-                                    .ToLocalChecked();
-            isolate->ThrowException(Exception::TypeError(err));
+            TypeError::New(env, "Wrong number of arguments")
+                .ThrowAsJavaScriptException();
+            return env.Null();
         }
-        MaybeLocal<String> source = args[0]->ToString(isolate->GetCurrentContext());
-        args.GetReturnValue().Set(source.ToLocalChecked());
+
+        Value arg = info[0];
+        if (!arg.IsString())
+        {
+            TypeError::New(env, "Argument must be a string")
+                .ThrowAsJavaScriptException();
+            return env.Null();
+        }
+
+        std::string source = arg.As<String>().Utf8Value();
+        auto result = ParserResult::from_source(source);
+        return convert(std::move(result), env);
     }
 
-    void Initialize(Local<Object> exports)
+    Object Init(Env env, Object exports)
     {
-        NODE_SET_METHOD(exports, "parse", parse);
+        exports.Set(String::New(env, "parse"),
+                    Function::New(env, parse));
+        return exports;
     }
 
-    NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
+    NODE_API_MODULE(ruby_parser, Init)
 
-} // namespace demo
+} // namespace lib_ruby_parser_node

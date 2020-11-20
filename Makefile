@@ -6,14 +6,22 @@ test-debug: build-debug
 test-release: build-release
 	./test.js ./build/Release/ruby_parser.node
 
-build-debug: node-gyp-configure
+build-debug: build-deps configure
 	node-gyp build -d
 
-build-release: node-gyp-configure
+build-release: build-deps configure
 	node-gyp build
 
-node-gyp-configure:
+configure:
 	node-gyp configure
+
+build-deps: build-convert build-cpp-bindings-shared
+
+build-convert:
+	cd build-convert && cargo run
+
+build-cpp-bindings-shared:
+	cd lib-ruby-parser-cpp-bindings && make cargo-build-release
 
 clean:
 	node-gyp clean
