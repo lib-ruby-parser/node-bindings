@@ -18,6 +18,10 @@ jobs:
         node: [ '10', '12', '14' ]
 
     steps:
+      - name: set NPM_CONFIG_PREFIX
+        run: |
+          echo "NPM_CONFIG_PREFIX=$HOME/.npm-global" >> $GITHUB_ENV
+
       - name: checkout
         uses: actions/checkout@v2
         with:
@@ -35,11 +39,19 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
+      - name: configure NPM_CONFIG_PREFIX
+        run: |
+          npm config set prefix $NPM_CONFIG_PREFIX
+          echo "$NPM_CONFIG_PREFIX/bin" >> $GITHUB_PATH
+
       - name: install node-gyp
-        run: sudo npm install -g node-gyp
+        run: |
+          npm install -g node-gyp
+          echo $PATH
+          which node-gyp
 
       - name: npm install
         run: npm install
 
       - name: Run tests
-        run: make test-all
+        run: make test-debug
