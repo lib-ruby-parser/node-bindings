@@ -5,80 +5,77 @@
 #include "lib-ruby-parser.h"
 #include "convert_gen.h"
 
-using namespace lib_ruby_parser;
-using namespace Napi;
-
 namespace lib_ruby_parser_node
 {
-    FunctionReference LocCtor;
-    FunctionReference RangeCtor;
-    FunctionReference TokenCtor;
-    FunctionReference DiagnosticCtor;
-    FunctionReference CommentCtor;
-    FunctionReference MagicCommentCtor;
-    FunctionReference ParserResultCtor;
+    Napi::FunctionReference LocCtor;
+    Napi::FunctionReference RangeCtor;
+    Napi::FunctionReference TokenCtor;
+    Napi::FunctionReference DiagnosticCtor;
+    Napi::FunctionReference CommentCtor;
+    Napi::FunctionReference MagicCommentCtor;
+    Napi::FunctionReference ParserResultCtor;
 
-    Value LocCtorFn(const CallbackInfo &info)
+    Napi::Value LocCtorFn(const Napi::CallbackInfo &info)
     {
-        Object self = info.This().As<Object>();
-        Env env = info.Env();
+        Napi::Object self = info.This().As<Napi::Object>();
+        Napi::Env env = info.Env();
         self.Set("begin", info[0]);
         self.Set("end", info[1]);
         return env.Null();
     }
 
-    Value RangeCtorFn(const CallbackInfo &info)
+    Napi::Value RangeCtorFn(const Napi::CallbackInfo &info)
     {
-        Object self = info.This().As<Object>();
-        Env env = info.Env();
+        Napi::Object self = info.This().As<Napi::Object>();
+        Napi::Env env = info.Env();
         self.Set("begin_pos", info[0]);
         self.Set("end_pos", info[1]);
         return env.Null();
     }
 
-    Value TokenCtorFn(const CallbackInfo &info)
+    Napi::Value TokenCtorFn(const Napi::CallbackInfo &info)
     {
-        Object self = info.This().As<Object>();
-        Env env = info.Env();
+        Napi::Object self = info.This().As<Napi::Object>();
+        Napi::Env env = info.Env();
         self.Set("name", info[0]);
         self.Set("value", info[1]);
         self.Set("loc", info[2]);
         return env.Null();
     }
 
-    Value DiagnosticCtorFn(const CallbackInfo &info)
+    Napi::Value DiagnosticCtorFn(const Napi::CallbackInfo &info)
     {
-        Object self = info.This().As<Object>();
-        Env env = info.Env();
+        Napi::Object self = info.This().As<Napi::Object>();
+        Napi::Env env = info.Env();
         self.Set("level", info[0]);
         self.Set("message", info[1]);
         self.Set("range", info[2]);
         return env.Null();
     }
 
-    Value CommentCtorFn(const CallbackInfo &info)
+    Napi::Value CommentCtorFn(const Napi::CallbackInfo &info)
     {
-        Object self = info.This().As<Object>();
-        Env env = info.Env();
+        Napi::Object self = info.This().As<Napi::Object>();
+        Napi::Env env = info.Env();
         self.Set("kind", info[0]);
         self.Set("location", info[1]);
         return env.Null();
     }
 
-    Value MagicCommentCtorFn(const CallbackInfo &info)
+    Napi::Value MagicCommentCtorFn(const Napi::CallbackInfo &info)
     {
-        Object self = info.This().As<Object>();
-        Env env = info.Env();
+        Napi::Object self = info.This().As<Napi::Object>();
+        Napi::Env env = info.Env();
         self.Set("kind", info[0]);
         self.Set("key_l", info[1]);
         self.Set("value_l", info[2]);
         return env.Null();
     }
 
-    Value ParserResultCtorFn(const CallbackInfo &info)
+    Napi::Value ParserResultCtorFn(const Napi::CallbackInfo &info)
     {
-        Object self = info.This().As<Object>();
-        Env env = info.Env();
+        Napi::Object self = info.This().As<Napi::Object>();
+        Napi::Env env = info.Env();
         self.Set("ast", info[0]);
         self.Set("tokens", info[1]);
         self.Set("diagnostics", info[2]);
@@ -88,38 +85,38 @@ namespace lib_ruby_parser_node
         return env.Null();
     }
 
-    Value convert(std::unique_ptr<Loc> loc, Env env)
+    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Loc> loc, Napi::Env env)
     {
         if (!loc)
         {
             return env.Null();
         }
-        return LocCtor.New({Value::From(env, loc->begin),
-                            Value::From(env, loc->end)});
+        return LocCtor.New({Napi::Value::From(env, loc->begin),
+                            Napi::Value::From(env, loc->end)});
     }
 
-    Value convert(std::unique_ptr<Range> range, Env env)
+    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Range> range, Napi::Env env)
     {
         if (!range)
         {
             return env.Null();
         }
         return RangeCtor.New({
-            Value::From(env, range->begin_pos),
-            Value::From(env, range->end_pos),
+            Napi::Value::From(env, range->begin_pos),
+            Napi::Value::From(env, range->end_pos),
         });
     }
 
-    Value convert(Token token, Env env)
+    Napi::Value convert(lib_ruby_parser::Token token, Napi::Env env)
     {
         return TokenCtor.New({
-            Value::From(env, token.name()),
-            Value::From(env, token.token_value),
+            Napi::Value::From(env, token.name()),
+            Napi::Value::From(env, token.token_value),
             convert(std::move(token.loc), env),
         });
     }
 
-    Value convert(std::vector<Token> tokens, Env env)
+    Napi::Value convert(std::vector<lib_ruby_parser::Token> tokens, Napi::Env env)
     {
         Napi::Array arr = Napi::Array::New(env, tokens.size());
         for (size_t i = 0; i < tokens.size(); i++)
@@ -129,26 +126,26 @@ namespace lib_ruby_parser_node
         return arr;
     }
 
-    Value convert(Diagnostic diagnostic, Env env)
+    Napi::Value convert(lib_ruby_parser::Diagnostic diagnostic, Napi::Env env)
     {
-        String level;
+        Napi::String level;
         switch (diagnostic.level)
         {
-        case ErrorLevel::WARNING:
-            level = String::New(env, "warning");
+        case lib_ruby_parser::ErrorLevel::WARNING:
+            level = Napi::String::New(env, "warning");
             break;
-        case ErrorLevel::ERROR:
-            level = String::New(env, "error");
+        case lib_ruby_parser::ErrorLevel::ERROR:
+            level = Napi::String::New(env, "error");
             break;
         }
         return DiagnosticCtor.New({
             level,
-            String::New(env, diagnostic.message),
+            Napi::String::New(env, diagnostic.message),
             convert(std::move(diagnostic.range), env),
         });
     }
 
-    Value convert(std::vector<Diagnostic> diagnostics, Env env)
+    Napi::Value convert(std::vector<lib_ruby_parser::Diagnostic> diagnostics, Napi::Env env)
     {
         Napi::Array arr = Napi::Array::New(env, diagnostics.size());
         for (size_t i = 0; i < diagnostics.size(); i++)
@@ -158,19 +155,19 @@ namespace lib_ruby_parser_node
         return arr;
     }
 
-    Value convert(Comment comment, Env env)
+    Napi::Value convert(lib_ruby_parser::Comment comment, Napi::Env env)
     {
-        String kind;
+        Napi::String kind;
         switch (comment.kind)
         {
-        case CommentType::INLINE:
-            kind = String::New(env, "inline");
+        case lib_ruby_parser::CommentType::INLINE:
+            kind = Napi::String::New(env, "inline");
             break;
-        case CommentType::DOCUMENT:
-            kind = String::New(env, "document");
+        case lib_ruby_parser::CommentType::DOCUMENT:
+            kind = Napi::String::New(env, "document");
             break;
-        case CommentType::UNKNOWN:
-            kind = String::New(env, "unknown");
+        case lib_ruby_parser::CommentType::UNKNOWN:
+            kind = Napi::String::New(env, "unknown");
             break;
         }
         return CommentCtor.New({
@@ -179,7 +176,7 @@ namespace lib_ruby_parser_node
         });
     }
 
-    Value convert(std::vector<Comment> comments, Env env)
+    Napi::Value convert(std::vector<lib_ruby_parser::Comment> comments, Napi::Env env)
     {
         Napi::Array arr = Napi::Array::New(env, comments.size());
         for (size_t i = 0; i < comments.size(); i++)
@@ -189,22 +186,22 @@ namespace lib_ruby_parser_node
         return arr;
     }
 
-    Value convert(MagicComment magic_comment, Env env)
+    Napi::Value convert(lib_ruby_parser::MagicComment magic_comment, Napi::Env env)
     {
-        String kind;
+        Napi::String kind;
         switch (magic_comment.kind)
         {
-        case MagicCommentKind::ENCODING:
-            kind = String::New(env, "encoding");
+        case lib_ruby_parser::MagicCommentKind::ENCODING:
+            kind = Napi::String::New(env, "encoding");
             break;
-        case MagicCommentKind::FROZEN_STRING_LITERAL:
-            kind = String::New(env, "frozen-string-literal");
+        case lib_ruby_parser::MagicCommentKind::FROZEN_STRING_LITERAL:
+            kind = Napi::String::New(env, "frozen-string-literal");
             break;
-        case MagicCommentKind::WARN_INDENT:
-            kind = String::New(env, "warn-indent");
+        case lib_ruby_parser::MagicCommentKind::WARN_INDENT:
+            kind = Napi::String::New(env, "warn-indent");
             break;
-        case MagicCommentKind::SHAREABLE_CONSTANT_VALUE:
-            kind = String::New(env, "shareable-constant-value");
+        case lib_ruby_parser::MagicCommentKind::SHAREABLE_CONSTANT_VALUE:
+            kind = Napi::String::New(env, "shareable-constant-value");
             break;
         }
         return MagicCommentCtor.New({
@@ -214,7 +211,7 @@ namespace lib_ruby_parser_node
         });
     }
 
-    Value convert(std::vector<MagicComment> magic_comments, Env env)
+    Napi::Value convert(std::vector<lib_ruby_parser::MagicComment> magic_comments, Napi::Env env)
     {
         Napi::Array arr = Napi::Array::New(env, magic_comments.size());
         for (size_t i = 0; i < magic_comments.size(); i++)
@@ -224,7 +221,7 @@ namespace lib_ruby_parser_node
         return arr;
     }
 
-    Value convert(std::unique_ptr<ParserResult> result, Env env)
+    Napi::Value convert(std::unique_ptr<lib_ruby_parser::ParserResult> result, Napi::Env env)
     {
         if (!result)
         {
@@ -236,56 +233,56 @@ namespace lib_ruby_parser_node
             convert(std::move(result->diagnostics), env),
             convert(std::move(result->comments), env),
             convert(std::move(result->magic_comments), env),
-            String::New(env, result->input),
+            Napi::String::New(env, result->input),
         });
     }
 
-    Value convert(Bytes &bytes, Env env)
+    Napi::Value convert(lib_ruby_parser::Bytes &bytes, Napi::Env env)
     {
         Napi::Array array = Napi::Array::New(env, bytes.size());
         for (size_t i = 0; i < bytes.size(); i++)
         {
-            array.Set(i, Number::New(env, bytes.ptr()[i]));
+            array.Set(i, Napi::Number::New(env, bytes.ptr()[i]));
         }
         return array;
     }
 
-    void InitCustomTypes(Env env, Object exports)
+    void InitCustomTypes(Napi::Env env, Napi::Object exports)
     {
         Napi::Function fn;
 
-        fn = Function::New(env, LocCtorFn, "Loc");
-        LocCtor = Persistent(fn);
+        fn = Napi::Function::New(env, LocCtorFn, "Loc");
+        LocCtor = Napi::Persistent(fn);
         LocCtor.SuppressDestruct();
         exports.Set("Loc", fn);
 
-        fn = Function::New(env, RangeCtorFn, "Range");
-        RangeCtor = Persistent(fn);
+        fn = Napi::Function::New(env, RangeCtorFn, "Range");
+        RangeCtor = Napi::Persistent(fn);
         RangeCtor.SuppressDestruct();
         exports.Set("Range", fn);
 
-        fn = Function::New(env, TokenCtorFn, "Token");
-        TokenCtor = Persistent(fn);
+        fn = Napi::Function::New(env, TokenCtorFn, "Token");
+        TokenCtor = Napi::Persistent(fn);
         TokenCtor.SuppressDestruct();
         exports.Set("Token", fn);
 
-        fn = Function::New(env, DiagnosticCtorFn, "Diagnostic");
-        DiagnosticCtor = Persistent(fn);
+        fn = Napi::Function::New(env, DiagnosticCtorFn, "Diagnostic");
+        DiagnosticCtor = Napi::Persistent(fn);
         DiagnosticCtor.SuppressDestruct();
         exports.Set("Diagnostic", fn);
 
-        fn = Function::New(env, CommentCtorFn, "Comment");
-        CommentCtor = Persistent(fn);
+        fn = Napi::Function::New(env, CommentCtorFn, "Comment");
+        CommentCtor = Napi::Persistent(fn);
         CommentCtor.SuppressDestruct();
         exports.Set("Comment", fn);
 
-        fn = Function::New(env, MagicCommentCtorFn, "MagicComment");
-        MagicCommentCtor = Persistent(fn);
+        fn = Napi::Function::New(env, MagicCommentCtorFn, "MagicComment");
+        MagicCommentCtor = Napi::Persistent(fn);
         MagicCommentCtor.SuppressDestruct();
         exports.Set("MagicComment", fn);
 
-        fn = Function::New(env, ParserResultCtorFn, "ParserResult");
-        ParserResultCtor = Persistent(fn);
+        fn = Napi::Function::New(env, ParserResultCtorFn, "ParserResult");
+        ParserResultCtor = Napi::Persistent(fn);
         ParserResultCtor.SuppressDestruct();
         exports.Set("ParserResult", fn);
     }

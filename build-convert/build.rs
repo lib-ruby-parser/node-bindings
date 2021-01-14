@@ -15,7 +15,7 @@ fn relative_path(path: &str) -> String {
 
 fn build_comparison(node: &Node) -> String {
     format!(
-        "if constexpr (std::is_same_v<T, std::unique_ptr<{class_name}>>)
+        "if constexpr (std::is_same_v<T, std::unique_ptr<lib_ruby_parser::{class_name}>>)
                 return convert(std::move(inner), env);",
         class_name = node.struct_name
     )
@@ -43,7 +43,7 @@ fn build_converter(node: &Node) -> String {
         .collect();
 
     format!(
-        "Napi::Value convert(std::unique_ptr<{class_name}> node, Napi::Env env) {{
+        "Napi::Value convert(std::unique_ptr<lib_ruby_parser::{class_name}> node, Napi::Env env) {{
         if (!node) {{
             return env.Null();
         }}
@@ -118,8 +118,6 @@ fn main() {
 #include <iostream>
 #include \"lib-ruby-parser.h\"
 
-using namespace lib_ruby_parser;
-
 template<class> inline constexpr bool always_false_v = false;
 
 namespace lib_ruby_parser_node
@@ -127,9 +125,9 @@ namespace lib_ruby_parser_node
     {ctor_definitions}
     {ctor_fn_definitions}
 
-    Napi::Value convert(std::unique_ptr<Node> node, Napi::Env env);
-    Napi::Value convert(Node node, Napi::Env env);
-    Napi::Value convert(std::unique_ptr<Range> range, Napi::Env env);
+    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Node> node, Napi::Env env);
+    Napi::Value convert(lib_ruby_parser::Node node, Napi::Env env);
+    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Range> range, Napi::Env env);
 
     Napi::Value convert(std::string s, Napi::Env env)
     {{
@@ -141,7 +139,7 @@ namespace lib_ruby_parser_node
         return Napi::Number::New(env, 0);
     }}
 
-    Napi::Value convert(std::vector<Node> nodes, Napi::Env env)
+    Napi::Value convert(std::vector<lib_ruby_parser::Node> nodes, Napi::Env env)
     {{
         Napi::Array arr = Napi::Array::New(env, nodes.size());
         for (size_t i = 0; i < nodes.size(); i++)
@@ -153,7 +151,7 @@ namespace lib_ruby_parser_node
 
     {converters}
 
-    Napi::Value convert(std::unique_ptr<Node> node, Napi::Env env)
+    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Node> node, Napi::Env env)
     {{
         if (!node) {{
             return env.Null();
@@ -166,7 +164,7 @@ namespace lib_ruby_parser_node
         }}, node->inner);
     }}
 
-    Napi::Value convert(Node node, Napi::Env env)
+    Napi::Value convert(lib_ruby_parser::Node node, Napi::Env env)
     {{
         return std::visit([env](auto &&inner) {{
             using T = std::decay_t<decltype(inner)>;
