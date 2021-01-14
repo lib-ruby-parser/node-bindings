@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [ '10', '12', '14' ]
+        node: [ '10', '12', '14', '15' ]
 
     steps:
       - name: set NPM_CONFIG_PREFIX
@@ -42,6 +42,8 @@ jobs:
       - name: configure NPM_CONFIG_PREFIX
         run: |
           npm config set prefix $NPM_CONFIG_PREFIX
+          mkdir -p $NPM_CONFIG_PREFIX/bin
+          mkdir -p $NPM_CONFIG_PREFIX/lib
           echo "$NPM_CONFIG_PREFIX/bin" >> $GITHUB_PATH
 
       - name: install node-gyp
