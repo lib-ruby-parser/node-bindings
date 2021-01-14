@@ -4,3 +4,6 @@ package-lock.json
 build-convert/target
 build-convert/Cargo.lock
 convert_gen.h
+
+lib-ruby-parser.a
+lib-ruby-parser.h

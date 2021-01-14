@@ -203,6 +203,9 @@ namespace lib_ruby_parser_node
         case MagicCommentKind::WARN_INDENT:
             kind = String::New(env, "warn-indent");
             break;
+        case MagicCommentKind::SHAREABLE_CONSTANT_VALUE:
+            kind = String::New(env, "shareable-constant-value");
+            break;
         }
         return MagicCommentCtor.New({
             kind,

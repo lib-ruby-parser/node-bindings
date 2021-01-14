@@ -51,7 +51,15 @@ jobs:
           which node-gyp
 
       - name: npm install
-        run: npm install
+        run: npm install --ignore-scripts
+
+      - name: configure
+        run: |
+          make update-cpp-bindings
+          make generate-bindings
+          make configure
 
       - name: Run tests
-        run: make test-debug
+        run: |
+          make build
+          make test

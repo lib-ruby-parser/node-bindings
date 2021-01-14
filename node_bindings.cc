@@ -28,7 +28,9 @@ namespace lib_ruby_parser_node
         }
 
         std::string source = arg.As<String>().Utf8Value();
-        auto result = ParserResult::from_source(source);
+        ParserOptions options;
+        options.record_tokens = true;
+        auto result = ParserResult::from_source(source, std::move(options));
         return convert(std::move(result), env);
     }
 

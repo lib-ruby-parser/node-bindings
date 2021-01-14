@@ -1,31 +1,49 @@
-test-all: test-debug test-release
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	PLATFORM = linux-x86_64
+endif
+ifeq ($(UNAME_S),Darwin)
+	PLATFORM = darwin-x86_64
+endif
 
-test-debug: build-debug
-	./test.js ./build/Debug/ruby_parser.node
+VERSION = 3.0.0-3
 
-test-release: build-release
-	./test.js ./build/Release/ruby_parser.node
+ifndef BUILD_ENV
+	BUILD_ENV = debug
+endif
 
-build-debug: build-deps configure
-	node-gyp build -d
+ifeq ($(BUILD_ENV), debug)
+	NODE_GYP_FLAGS = -d
+	GYP_ENV = Debug
+else
+	NODE_GYP_FLAGS =
+	GYP_ENV = Release
+endif
 
-build-release: build-deps configure
-	node-gyp build
+ASSET_PREFIX = https://github.com/lib-ruby-parser/cpp-bindings/releases/download/v$(VERSION)
+LIB_RUBY_PARSER_H_URL = $(ASSET_PREFIX)/lib-ruby-parser.h
+LIB_RUBY_PARSER_A_URL = $(ASSET_PREFIX)/$(PLATFORM).a
 
 configure:
 	node-gyp configure
 
-build-deps: run-build-convert build-cpp-bindings-shared
-
-run-build-convert:
+generate-bindings:
 	cd build-convert && cargo build
 
-build-cpp-bindings-shared:
-	cd lib-ruby-parser-cpp-bindings && make cargo-build-release
+.PHONY: build
+build:
+	node-gyp build $(NODE_GYP_FLAGS)
+
+GYP_OUTPUT = ./build/$(GYP_ENV)/ruby_parser.node
+test:
+	./test.js $(GYP_OUTPUT)
 
 clean:
-	rm -rf build
-	rm -rf node_modules
+	rm -f $(GYP_OUTPUT)
 	rm -f convert_gen.h
-	rm -rf lib-ruby-parser-cpp-bindings/target
-	cd build-convert && cargo clean
+
+# // cpp bindings files
+
+update-cpp-bindings:
+	wget $(LIB_RUBY_PARSER_H_URL) -O lib-ruby-parser.h
+	wget $(LIB_RUBY_PARSER_A_URL) -O lib-ruby-parser.a
