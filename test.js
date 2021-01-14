@@ -28,15 +28,30 @@ function assert_node_type(node, type) {
 }
 
 function assert_range(range, begin_pos, end_pos) {
-    assert(range instanceof Range, `can't assert begin_pos/end_pos of null range`)
+    assert(range instanceof Range, `expected ${range} to be an instance of Range`)
     assert(range.begin_pos === begin_pos, `expected 'begin_pos' of range to be ${begin_pos}, got ${range.begin_pos}`)
     assert(range.end_pos === end_pos, `expected 'end_pos' of range to be ${end_pos}, got ${range.end_pos}`)
+}
+
+function assert_token(token, name, value, loc) {
+    assert(token instanceof Token, `expected ${token} to be an instance of Token`)
+    assert(token.name == name, `expected token's name to be ${name}, got ${token.name}`)
+    assert(token.value == value, `expected token's value to be ${value}, got ${token.value}`)
+    assert(token.loc.begin == loc.begin, `expected token's begin to be ${loc.begin}, got ${token.loc.begin}`)
+    assert(token.loc.end == loc.end, `expected token's end to be ${loc.end}, got ${token.loc.end}`)
 }
 
 assert_throws(42)
 assert_throws("foo", 10)
 
-let result = parse("self.foo(123)")
+let result = parse(
+    "self.foo(123)",
+    {
+        record_tokens: true,
+        debug: true,
+        buffer_name: "(test)"
+    }
+)
 console.log(inspect(result, { showHidden: false, depth: null }));
 
 assert(result !== null, "expected result to be non-null")
@@ -66,24 +81,14 @@ assert(arg.value === "123")
 assert(arg.operator_l === null)
 assert_range(arg.expression_l, 9, 12)
 
-let expected_tokens = [
-    new Token("kSELF", "self", new Loc(0, 4)),
-    new Token("tDOT", ".", new Loc(4, 5)),
-    new Token("tIDENTIFIER", "foo", new Loc(5, 8)),
-    new Token("tLPAREN2", "(", new Loc(8, 9)),
-    new Token("tINTEGER", "123", new Loc(9, 12)),
-    new Token("tRPAREN", ")", new Loc(12, 13)),
-    new Token("EOF", "", new Loc(13, 13)),
-]
-
-assert(tokens.length == expected_tokens.length)
-
-for (let i = 0; i < tokens.length; i++) {
-    assert(tokens[i].name == expected_tokens[i].name)
-    assert(tokens[i].value == expected_tokens[i].value)
-    assert(tokens[i].loc.begin == expected_tokens[i].loc.begin)
-    assert(tokens[i].loc.end == expected_tokens[i].loc.end)
-}
+assert(tokens.length == 7)
+assert_token(tokens[0], "kSELF", "self", new Loc(0, 4))
+assert_token(tokens[1], "tDOT", ".", new Loc(4, 5))
+assert_token(tokens[2], "tIDENTIFIER", "foo", new Loc(5, 8))
+assert_token(tokens[3], "tLPAREN2", "(", new Loc(8, 9))
+assert_token(tokens[4], "tINTEGER", "123", new Loc(9, 12))
+assert_token(tokens[5], "tRPAREN", ")", new Loc(12, 13))
+assert_token(tokens[6], "EOF", "", new Loc(13, 13))
 
 assert(diagnostics.length === 0)
 assert(comments.length === 0)
