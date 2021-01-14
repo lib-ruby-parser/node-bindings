@@ -240,6 +240,16 @@ namespace lib_ruby_parser_node
         });
     }
 
+    Value convert(Bytes &bytes, Env env)
+    {
+        Napi::Array array = Napi::Array::New(env, bytes.size());
+        for (size_t i = 0; i < bytes.size(); i++)
+        {
+            array.Set(i, Number::New(env, bytes.ptr()[i]));
+        }
+        return array;
+    }
+
     void InitCustomTypes(Env env, Object exports)
     {
         Napi::Function fn;
