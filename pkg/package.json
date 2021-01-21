@@ -1,0 +1,7 @@
+{
+    "name": "lib-ruby-parser",
+    "version": "0.0.0",
+    "description": "bindings to lib-ruby-parser",
+    "repository": "github:lib-ruby-parser/node-bindings",
+    "license": "MIT"
+}
