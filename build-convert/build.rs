@@ -128,6 +128,7 @@ namespace lib_ruby_parser_node
     Napi::Value convert(std::unique_ptr<lib_ruby_parser::Node> node, Napi::Env env);
     Napi::Value convert(lib_ruby_parser::Node node, Napi::Env env);
     Napi::Value convert(std::unique_ptr<lib_ruby_parser::Range> range, Napi::Env env);
+    Napi::Value convert(lib_ruby_parser::Bytes bytes, Napi::Env env);
 
     Napi::Value convert(std::string s, Napi::Env env)
     {{

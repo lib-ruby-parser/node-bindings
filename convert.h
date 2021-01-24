@@ -111,7 +111,7 @@ namespace lib_ruby_parser_node
     {
         return TokenCtor.New({
             Napi::Value::From(env, token.name()),
-            Napi::Value::From(env, token.token_value),
+            Napi::Value::From(env, token.token_value.to_string_lossy()),
             convert(std::move(token.loc), env),
         });
     }
@@ -233,16 +233,16 @@ namespace lib_ruby_parser_node
             convert(std::move(result->diagnostics), env),
             convert(std::move(result->comments), env),
             convert(std::move(result->magic_comments), env),
-            Napi::String::New(env, result->input),
+            Napi::String::New(env, result->input.to_string_lossy()),
         });
     }
 
-    Napi::Value convert(lib_ruby_parser::Bytes &bytes, Napi::Env env)
+    Napi::Value convert(lib_ruby_parser::Bytes bytes, Napi::Env env)
     {
         Napi::Array array = Napi::Array::New(env, bytes.size());
         for (size_t i = 0; i < bytes.size(); i++)
         {
-            array.Set(i, Napi::Number::New(env, bytes.ptr()[i]));
+            array.Set(i, Napi::Number::New(env, bytes.at(i)));
         }
         return array;
     }

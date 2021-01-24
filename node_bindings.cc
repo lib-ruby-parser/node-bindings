@@ -35,7 +35,7 @@ namespace lib_ruby_parser_node
         {
             Napi::Value raw_response = callback.Call({
                 Napi::String::New(env(), encoding),
-                convert(input, env()),
+                convert(std::move(input), env()),
             });
             if (!raw_response.IsObject())
                 return JsError("response must be an object");
@@ -53,8 +53,7 @@ namespace lib_ruby_parser_node
                     return JsError("'output' field must be an array");
 
                 Napi::Array output = response.Get("output").As<Napi::Array>();
-                std::vector<char> bytes;
-                bytes.reserve(output.Length());
+                auto ptr = (char *)malloc(output.Length());
                 for (size_t i = 0; i < output.Length(); i++)
                 {
                     Napi::Value byte = output[i];
@@ -62,9 +61,9 @@ namespace lib_ruby_parser_node
                     {
                         return JsError("'output' field contains invalid byte");
                     }
-                    bytes.push_back(byte.ToNumber().Int32Value());
+                    ptr[i] = byte.ToNumber().Int32Value();
                 }
-                return Result::Ok(lib_ruby_parser::Bytes(std::move(bytes)));
+                return Result::Ok(lib_ruby_parser::Bytes(ptr, output.Length()));
             }
             else
             {
