@@ -50,7 +50,7 @@ jobs:
       fail-fast: false
       matrix:
         build:
-          - { os: ubuntu-20.04, output: linux-x86_64.node }
+          - { os: ubuntu-latest, output: linux-x86_64.node }
           - { os: macos-latest, output: darwin-x86_64.node }
     steps:
       - name: set NPM_CONFIG_PREFIX
@@ -129,7 +129,7 @@ jobs:
   build-package:
     name: build-package
     needs: ['build-node-files']
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -199,7 +199,7 @@ jobs:
       fail-fast: false
       matrix:
         node: [ '10', '12', '14', '15' ]
-        os: [ubuntu-20.04, macos-latest]
+        os: [ ubuntu-latest, macos-latest ]
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -238,7 +238,7 @@ jobs:
   publish-package:
     name: publish-package
     needs: ['test-package']
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: download env artifact
         uses: actions/download-artifact@v1

@@ -12,11 +12,11 @@ env:
 jobs:
   test:
     name: run tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         node: [ '10', '12', '14', '15' ]
-
+        os: [ ubuntu-latest, macos-latest ]
     steps:
       - name: set NPM_CONFIG_PREFIX
         run: |
