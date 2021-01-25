@@ -56,25 +56,20 @@ function print_parse_result(parse_result) {
     console.log(inspect(result, { showHidden: false, depth: null }))
 }
 
-function str_to_utf8_bytes(str) {
-    const utf8 = unescape(encodeURIComponent(str))
-
-    const arr = []
-    for (let i = 0; i < utf8.length; i++) {
-        arr.push(utf8.charCodeAt(i))
-    }
-
-    return arr
+function bytes(str) {
+    const bytes = unescape(encodeURIComponent(str)).split('').map(c => c.charCodeAt(0))
+    return new Uint8Array(bytes)
 }
 
 class TestSuite {
     test_invalid_args() {
         assert_parse_throws(42)
         assert_parse_throws("foo", 10)
+        assert_parse_throws(bytes("foo"), 10)
     }
 
     test_parse() {
-        const result = parse("self.foo(123)", {})
+        const result = parse(bytes("self.foo(123)"), {})
         assert(result !== null, "expected result to be non-null")
 
         const { ast } = result
@@ -103,7 +98,7 @@ class TestSuite {
     }
 
     test_tokens() {
-        const result = parse("self.foo(123)", { record_tokens: true })
+        const result = parse(bytes("self.foo(123)"), { record_tokens: true })
         assert(result !== null, "expected result to be non-null")
 
         const { tokens } = result
@@ -119,7 +114,7 @@ class TestSuite {
     }
 
     test_diagnostics() {
-        const result = parse("self.foo(123)", { record_tokens: true })
+        const result = parse(bytes("self.foo(123)"), { record_tokens: true })
         assert(result !== null, "expected result to be non-null")
 
         const { diagnostics } = result
@@ -127,7 +122,7 @@ class TestSuite {
     }
 
     test_comments() {
-        const result = parse("self.foo(123)", { record_tokens: true })
+        const result = parse(bytes("self.foo(123)"), { record_tokens: true })
         assert(result !== null, "expected result to be non-null")
 
         const { comments } = result
@@ -135,7 +130,7 @@ class TestSuite {
     }
 
     test_magic_comments() {
-        const result = parse("self.foo(123)", { record_tokens: true })
+        const result = parse(bytes("self.foo(123)"), { record_tokens: true })
         assert(result !== null, "expected result to be non-null")
 
         const { magic_comments } = result
@@ -143,14 +138,13 @@ class TestSuite {
     }
 
     test_custom_decoder_ok() {
-        const input = "# encoding: us-ascii\n2 + 2";
+        const input = bytes("# encoding: us-ascii\n2 + 2");
         const custom_decoder_called_with = {}
         const custom_decoder = (encoding, input) => {
-            // TODO: switch to Uint8Array
             custom_decoder_called_with.encoding = encoding;
             custom_decoder_called_with.input = input;
-            const output = "# encoding: us-ascii\n3 + 3"
-            return { success: true, output: str_to_utf8_bytes(output) }
+            const output = bytes("# encoding: us-ascii\n3 + 3")
+            return output
         }
         const result = parse(input, { custom_decoder, record_tokens: true })
         assert(result !== null, "expected result to be non-null")
@@ -164,14 +158,13 @@ class TestSuite {
         assert_token(tokens[3], "EOF", "", new Loc(26, 26), 'tokens[3]')
 
         assert_eq(custom_decoder_called_with.encoding, 'US-ASCII', 'encoding given to custom decoder')
-        assert_array_eq(custom_decoder_called_with.input, str_to_utf8_bytes(input), 'input given to custom decoder')
+        assert_array_eq(custom_decoder_called_with.input, input, 'input given to custom decoder')
     }
 
     test_custom_decoder_err() {
-        const input = "# encoding: us-ascii\n2 + 2";
+        const input = bytes("# encoding: us-ascii\n2 + 2");
         const custom_decoder = (encoding, input) => {
-            // TODO: switch to Uint8Array
-            return { success: false, error: "test error" }
+            return 'test error'
         }
 
         const result = parse(input, { custom_decoder })

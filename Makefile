@@ -6,7 +6,7 @@ ifeq ($(UNAME_S),Darwin)
 	PLATFORM = darwin-x86_64
 endif
 
-VERSION = 3.0.0-3.2
+VERSION = 3.0.0-3.3
 
 ifndef BUILD_ENV
 	BUILD_ENV = debug

@@ -3,6 +3,8 @@
 
 #include <napi.h>
 #include "lib-ruby-parser.h"
+#include "bytes.h"
+#include <iostream>
 
 namespace lib_ruby_parser_node
 {
@@ -10,19 +12,13 @@ namespace lib_ruby_parser_node
     class JsCustomDecoder : public lib_ruby_parser::CustomDecoder
     {
     public:
-        struct DecodeError
-        {
-            bool has_error;
-            std::string error;
-        };
-
         Napi::FunctionReference callback;
-        std::shared_ptr<DecodeError> error;
+        std::shared_ptr<std::string> error;
 
-        JsCustomDecoder(const Napi::Function &callback, std::shared_ptr<DecodeError> error)
+        JsCustomDecoder(const Napi::Function &callback)
         {
             this->callback = Napi::Persistent(callback);
-            this->error = error;
+            this->error = std::shared_ptr<std::string>(nullptr);
         }
 
         Napi::Env env()
@@ -32,54 +28,33 @@ namespace lib_ruby_parser_node
 
         virtual Result rewrite(std::string encoding, lib_ruby_parser::Bytes input)
         {
-            Napi::Value raw_response = callback.Call({
+            Napi::Value response = this->callback.Call({
                 Napi::String::New(env(), encoding),
                 convert(std::move(input), env()),
             });
-            if (!raw_response.IsObject())
-                return JsError("response must be an object");
 
-            Napi::Object response = raw_response.As<Napi::Object>();
-
-            Napi::Value success = response.Get("success");
-            if (!success.IsBoolean())
-                return JsError("'success' field must be true/false");
-
-            if (success.ToBoolean().Value())
+            if (response.IsString())
             {
-                // success, consume 'output' field
-                if (!response.Get("output").IsArray())
-                    return JsError("'output' field must be an array");
-
-                Napi::Array output = response.Get("output").As<Napi::Array>();
-                auto ptr = (char *)malloc(output.Length());
-                for (size_t i = 0; i < output.Length(); i++)
-                {
-                    Napi::Value byte = output[i];
-                    if (!byte.IsNumber())
-                    {
-                        return JsError("'output' field contains invalid byte");
-                    }
-                    ptr[i] = byte.ToNumber().Int32Value();
-                }
-                return Result::Ok(lib_ruby_parser::Bytes(ptr, output.Length()));
+                // error
+                Napi::String js_error = Napi::String::New(env(), response.ToString().Utf8Value());
+                return JsError(js_error);
             }
-            else
+            // success
+            auto bytes_result = Bytes::FromV8(response);
+            if (bytes_result.is_err())
             {
-                // error, consume 'error' field
-                if (!response.Get("error").IsString())
-                    return JsError("'error' field must be a string");
-
-                Napi::String error = Napi::String::New(env(), response.Get("error").ToString().Utf8Value());
-                return Result::Error(error);
+                return JsError("custom decoder output: " + bytes_result.get_err());
             }
+
+            auto bytes = bytes_result.get();
+            return Result::Ok(std::move(bytes));
         }
         virtual ~JsCustomDecoder() {}
 
         Result JsError(std::string message)
         {
-            this->error->has_error = true;
-            this->error->error = "custom_rewriter: " + message;
+            auto new_error = new std::string("custom_rewriter: " + message);
+            this->error.reset(new_error);
             return Result::Error(message);
         }
     };
