@@ -234,7 +234,7 @@ jobs:
           npm install ../lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz/lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
 
           node -e "console.log(require.resolve('lib-ruby-parser'))"
-          node -e "console.log(require('lib-ruby-parser').parse('2 + 2', {}))"
+          node -e "console.log(require('lib-ruby-parser').parse(new Uint8Array(), {}))"
 
   publish-package:
     name: publish-package
