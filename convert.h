@@ -239,10 +239,10 @@ namespace lib_ruby_parser_node
 
     Napi::Value convert(lib_ruby_parser::Bytes bytes, Napi::Env env)
     {
-        Napi::Array array = Napi::Array::New(env, bytes.size());
+        Napi::TypedArray array = Napi::Uint8Array::New(env, bytes.size());
         for (size_t i = 0; i < bytes.size(); i++)
         {
-            array.Set(i, Napi::Number::New(env, bytes.at(i)));
+            array.Set(i, bytes.at(i));
         }
         return array;
     }
