@@ -8,7 +8,7 @@ if (!path_to_require) {
 }
 
 console.log(`requiring ${path_to_require}`)
-const { parse, Range, Send, Self_, Int, Token, Loc, Diagnostic } = require(path_to_require)
+const { parse, Range, Send, Self_, Int, Token, Loc, Diagnostic, bytes_to_utf8_lossy } = require(path_to_require)
 const assert = require('assert').strict
 const inspect = require('util').inspect
 
@@ -47,13 +47,13 @@ function assert_range(range, begin_pos, end_pos, prefix) {
 function assert_token(token, name, value, loc, prefix) {
     assert(token instanceof Token, `[${prefix}] expected ${token} to be an instance of Token`)
     assert_eq(token.name, name, `[${prefix}].name`)
-    assert_eq(token.value, value, `[${prefix}].value`)
+    assert_eq(bytes_to_utf8_lossy(token.value), value, `[${prefix}].value`)
     assert_eq(token.loc.begin, loc.begin, `[${prefix}].loc.begin`)
     assert_eq(token.loc.end, loc.end, `[${prefix}].loc.end`)
 }
 
-function print_parse_result(parse_result) {
-    console.log(inspect(result, { showHidden: false, depth: null }))
+function print_parser_result(parser_result) {
+    console.log(inspect(parser_result, { showHidden: false, depth: null }))
 }
 
 function bytes(str) {

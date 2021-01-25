@@ -11,17 +11,16 @@ namespace lib_ruby_parser_node
     class Bytes : public lib_ruby_parser::Bytes
     {
     public:
-        explicit Bytes(lib_ruby_parser::Bytes bytes)
+        explicit Bytes(lib_ruby_parser::Bytes bytes) : lib_ruby_parser::Bytes(bytes.into_ptr())
         {
-            lib_ruby_parser::Bytes(bytes.into_ptr());
         }
 
-        Napi::Value to_v8_value(Napi::Env env) const
+        Napi::Value ToV8(Napi::Env env) const
         {
-            Napi::TypedArray array = Napi::Uint8Array::New(env, this->size());
+            Napi::Uint8Array array = Napi::Uint8Array::New(env, this->size());
             for (size_t i = 0; i < this->size(); i++)
             {
-                array.Set(i, this->at(i));
+                array[i] = this->at(i);
             }
             return array;
         }

@@ -4,6 +4,7 @@
 #include <napi.h>
 #include "lib-ruby-parser.h"
 #include "convert_gen.h"
+#include "bytes.h"
 
 namespace lib_ruby_parser_node
 {
@@ -111,7 +112,7 @@ namespace lib_ruby_parser_node
     {
         return TokenCtor.New({
             Napi::Value::From(env, token.name()),
-            Napi::Value::From(env, token.token_value.to_string_lossy()),
+            Napi::Value::From(env, Bytes(std::move(token.token_value)).ToV8(env)),
             convert(std::move(token.loc), env),
         });
     }
@@ -233,7 +234,7 @@ namespace lib_ruby_parser_node
             convert(std::move(result->diagnostics), env),
             convert(std::move(result->comments), env),
             convert(std::move(result->magic_comments), env),
-            Napi::String::New(env, result->input.to_string_lossy()),
+            Bytes(std::move(result->input)).ToV8(env),
         });
     }
 

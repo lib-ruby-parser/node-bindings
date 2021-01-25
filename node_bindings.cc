@@ -4,7 +4,6 @@
 #include "custom_decoder.h"
 #include "bytes.h"
 #include "result.h"
-#include <iostream>
 #include <variant>
 #include <tuple>
 
@@ -69,8 +68,6 @@ namespace lib_ruby_parser_node
 
     Result<std::unique_ptr<lib_ruby_parser::ParserResult>> parse(const Napi::CallbackInfo &info)
     {
-        Napi::Env env = info.Env();
-
         if (info.Length() != 2)
         {
             return "Wrong number of arguments (expected 2)";
@@ -102,10 +99,38 @@ namespace lib_ruby_parser_node
         return convert(result.get(), env);
     }
 
+    Result<lib_ruby_parser::Bytes> bytes_to_utf8_lossy(const Napi::CallbackInfo &info)
+    {
+        if (info.Length() != 1)
+        {
+            return "Wrong number of arguments (expected 1)";
+        }
+
+        UNWRAP_RESULT(bytes, Bytes::FromV8(info[0]));
+
+        return std::move(bytes);
+    }
+
+    Napi::Value js_bytes_to_utf8_lossy(const Napi::CallbackInfo &info)
+    {
+        auto env = info.Env();
+
+        auto result = bytes_to_utf8_lossy(info);
+        if (result.is_err())
+        {
+            return JsThrow(env, result.get_err());
+        }
+        auto bytes = result.get();
+        return Napi::String::New(info.Env(), bytes.to_string_lossy());
+    }
+
     Napi::Object Init(Napi::Env env, Napi::Object exports)
     {
         exports.Set(Napi::String::New(env, "parse"),
                     Napi::Function::New(env, js_parse));
+
+        exports.Set(Napi::String::New(env, "bytes_to_utf8_lossy"),
+                    Napi::Function::New(env, js_bytes_to_utf8_lossy));
 
         InitCustomTypes(env, exports);
         InitNodeTypes(env, exports);

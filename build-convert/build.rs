@@ -115,7 +115,6 @@ fn main() {
 #define LIB_RUBY_PARSER_CONVERT_GEN_H
 
 #include <napi.h>
-#include <iostream>
 #include \"lib-ruby-parser.h\"
 
 template<class> inline constexpr bool always_false_v = false;
