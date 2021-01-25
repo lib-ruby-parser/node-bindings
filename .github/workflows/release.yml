@@ -169,6 +169,7 @@ jobs:
           cp linux-x86_64.node/ruby_parser.node pkg/linux-x86_64.node
           cp darwin-x86_64.node/ruby_parser.node pkg/darwin-x86_64.node
           cp LICENSE pkg/
+          cp README.md pkg/
           cd pkg
 
           npm version "$GITHUB_TAG" --no-git-tag-version
