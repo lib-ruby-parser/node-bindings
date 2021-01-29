@@ -50,12 +50,14 @@ jobs:
       fail-fast: false
       matrix:
         build:
-          - { os: ubuntu-latest, output: linux-x86_64.node }
-          - { os: macos-latest, output: darwin-x86_64.node }
+          - { os: ubuntu-latest, output: linux.node }
+          - { os: macos-latest, output: darwin.node }
+          - { os: windows-latest, output: win32.node }
     steps:
-      - name: set NPM_CONFIG_PREFIX
-        run: |
-          echo "NPM_CONFIG_PREFIX=$HOME/.npm-global" >> $GITHUB_ENV
+      - name: install wget
+        if: runner.os == 'Windows'
+        shell: bash
+        run: choco install wget --no-progress
 
       - name: checkout
         uses: actions/checkout@v2
@@ -67,6 +69,7 @@ jobs:
           path: artifact-env
 
       - name: load env artifact
+        shell: bash
         run: cat artifact-env/artifact-env >> $GITHUB_ENV
 
       - name: install node
@@ -82,33 +85,20 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: configure NPM_CONFIG_PREFIX
-        run: |
-          npm config set prefix $NPM_CONFIG_PREFIX
-          mkdir -p $NPM_CONFIG_PREFIX/bin
-          mkdir -p $NPM_CONFIG_PREFIX/lib
-          echo "$NPM_CONFIG_PREFIX/bin" >> $GITHUB_PATH
-
-      - name: install node-gyp
-        run: |
-          npm install -g node-gyp
-          echo $PATH
-          which node-gyp
-
-      - name: npm install
-        run: npm install --ignore-scripts
-
-      - name: configure
-        run: |
-          make update-cpp-bindings
-          make generate-bindings
-          make configure
-
       - name: build
-        run: make build
+        shell: bash
+        run: |
+          make setup
+          make download-cpp-bindings
+          make generate-node-bindings
 
-      - name: run tests
-        run: make test
+          make configure
+          make build
+
+      - name: Run tests
+        shell: bash
+        run: |
+          make test
 
       - name: upload assets
         uses: actions/upload-release-asset@v1.0.1
@@ -143,14 +133,20 @@ jobs:
       - name: download linux artifact
         uses: actions/download-artifact@v1
         with:
-          name: linux-x86_64.node
-          path: linux-x86_64.node
+          name: linux.node
+          path: linux.node
 
       - name: download macos artifact
         uses: actions/download-artifact@v1
         with:
-          name: darwin-x86_64.node
-          path: darwin-x86_64.node
+          name: darwin.node
+          path: darwin.node
+
+      - name: download windows artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: win32.node
+          path: win32.node
 
       - name: download env artifact
         uses: actions/download-artifact@v1
@@ -163,11 +159,13 @@ jobs:
 
       - name: build package
         run: |
-          ls -l linux-x86_64.node/
-          ls -l darwin-x86_64.node/
+          ls -l linux.node/
+          ls -l darwin.node/
+          ls -l win32.node/
 
-          cp linux-x86_64.node/ruby_parser.node pkg/linux-x86_64.node
-          cp darwin-x86_64.node/ruby_parser.node pkg/darwin-x86_64.node
+          cp linux.node/ruby_parser.node pkg/linux.node
+          cp darwin.node/ruby_parser.node pkg/darwin.node
+          cp win32.node/ruby_parser.node pkg/win32.node
           cp LICENSE pkg/
           cp README.md pkg/
           cd pkg
@@ -200,7 +198,7 @@ jobs:
       fail-fast: false
       matrix:
         node: [ '10', '12', '14', '15' ]
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -218,6 +216,7 @@ jobs:
           path: artifact-env
 
       - name: load env artifact
+        shell: bash
         run: cat artifact-env/artifact-env >> $GITHUB_ENV
 
       - name: download .tgz artifact
@@ -227,6 +226,7 @@ jobs:
           path: lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
 
       - name: test
+        shell: bash
         run: |
           mkdir test
           cd test
