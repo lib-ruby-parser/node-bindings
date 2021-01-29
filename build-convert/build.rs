@@ -15,8 +15,9 @@ fn relative_path(path: &str) -> String {
 
 fn build_comparison(node: &Node) -> String {
     format!(
-        "if constexpr (std::is_same_v<T, std::unique_ptr<lib_ruby_parser::{class_name}>>)
-                return convert(std::move(inner), env);",
+        "if constexpr (std::is_same_v<T, std::unique_ptr<lib_ruby_parser::{class_name}>>) {{
+                return convert(std::move(inner), env);
+            }}",
         class_name = node.struct_name
     )
 }
@@ -159,8 +160,6 @@ namespace lib_ruby_parser_node
         return std::visit([env](auto &&inner) -> Napi::Value {{
             using T = std::decay_t<decltype(inner)>;
             {comparisons}
-            else
-                static_assert(always_false_v<T>, \"non-exhaustive visitor!\");
         }}, node->inner);
     }}
 
@@ -169,8 +168,6 @@ namespace lib_ruby_parser_node
         return std::visit([env](auto &&inner) {{
             using T = std::decay_t<decltype(inner)>;
             {comparisons}
-            else
-                static_assert(always_false_v<T>, \"non-exhaustive visitor!\");
         }}, node.inner);
     }}
 
@@ -184,7 +181,7 @@ namespace lib_ruby_parser_node
 #endif // LIB_RUBY_PARSER_CONVERT_GEN_H
 ",
         converters = converters.join("\n    "),
-        comparisons = comparisons.join("\n            else "),
+        comparisons = comparisons.join("\n            "),
         ctor_definitions = ctor_definitions.join("\n    "),
         ctor_fn_definitions = ctor_fn_definitions.join("\n    "),
         init_exports = init_exports.join("\n        ")
