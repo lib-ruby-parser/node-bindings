@@ -1,10 +1,17 @@
+#include <tuple>
 #include <napi.h>
 #include "lib-ruby-parser.h"
-#include "convert.h"
 #include "custom_decoder.h"
 #include "bytes.h"
 #include "result.h"
-#include <tuple>
+#include "bytes.h"
+#include "input.h"
+#include "loc.h"
+#include "token.h"
+#include "diagnostic.h"
+#include "comment.h"
+#include "magic_comment.h"
+#include "parser_result.h"
 
 namespace lib_ruby_parser_node
 {
@@ -131,7 +138,13 @@ namespace lib_ruby_parser_node
         exports.Set(Napi::String::New(env, "bytes_to_utf8_lossy"),
                     Napi::Function::New(env, js_bytes_to_utf8_lossy));
 
-        InitCustomTypes(env, exports);
+        Loc::Init(env, exports);
+        Token::Init(env, exports);
+        Diagnostic::Init(env, exports);
+        Comment::Init(env, exports);
+        MagicComment::Init(env, exports);
+        ParserResult::Init(env, exports);
+
         InitNodeTypes(env, exports);
 
         return exports;
