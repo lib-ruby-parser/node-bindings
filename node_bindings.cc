@@ -4,7 +4,6 @@
 #include "custom_decoder.h"
 #include "bytes.h"
 #include "result.h"
-#include <variant>
 #include <tuple>
 
 namespace lib_ruby_parser_node

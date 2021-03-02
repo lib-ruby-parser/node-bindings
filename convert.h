@@ -29,11 +29,6 @@ namespace lib_ruby_parser_node
         return env.Null();
     }
 
-    Napi::Value convert(lib_ruby_parser::Input input, Napi::Env env)
-    {
-        return Input::New(env, std::move(input));
-    }
-
     Napi::Value convert(std::unique_ptr<lib_ruby_parser::ParserResult> result, Napi::Env env)
     {
         if (!result)
@@ -48,16 +43,6 @@ namespace lib_ruby_parser_node
             convert(std::move(result->magic_comments), env),
             convert(std::move(result->input), env),
         });
-    }
-
-    Napi::Value convert(lib_ruby_parser::Bytes bytes, Napi::Env env)
-    {
-        Napi::TypedArray array = Napi::Uint8Array::New(env, bytes.size());
-        for (size_t i = 0; i < bytes.size(); i++)
-        {
-            array.Set(i, bytes.at(i));
-        }
-        return array;
     }
 
     void InitCustomTypes(Napi::Env env, Napi::Object exports)

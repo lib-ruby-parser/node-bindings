@@ -6,6 +6,7 @@
                 "node_bindings.cc",
                 "loc.cc",
                 "input.cc",
+                "bytes.cc",
                 "token.cc",
                 "diagnostic.cc",
                 "comment.cc",

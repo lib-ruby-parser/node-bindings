@@ -14,4 +14,9 @@ namespace lib_ruby_parser_node
                 delete new lib_ruby_parser::Input(input);
             });
     }
+
+    Napi::Value convert(lib_ruby_parser::Input input, Napi::Env env)
+    {
+        return Input::New(env, std::move(input));
+    }
 }

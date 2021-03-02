@@ -12,6 +12,8 @@ namespace lib_ruby_parser_node
     public:
         static Napi::Value New(Napi::Env env, lib_ruby_parser::Input input);
     };
+
+    Napi::Value convert(lib_ruby_parser::Input input, Napi::Env env);
 }
 
 #endif // LIB_RUBY_PARSER_NODE_INPUT_H
