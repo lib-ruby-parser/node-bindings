@@ -8,23 +8,13 @@
 #include "input.h"
 #include "loc.h"
 #include "token.h"
+#include "diagnostic.h"
 
 namespace lib_ruby_parser_node
 {
-    Napi::FunctionReference DiagnosticCtor;
     Napi::FunctionReference CommentCtor;
     Napi::FunctionReference MagicCommentCtor;
     Napi::FunctionReference ParserResultCtor;
-
-    Napi::Value DiagnosticCtorFn(const Napi::CallbackInfo &info)
-    {
-        Napi::Object self = info.This().As<Napi::Object>();
-        Napi::Env env = info.Env();
-        self.Set("level", info[0]);
-        self.Set("message", info[1]);
-        self.Set("loc", info[2]);
-        return env.Null();
-    }
 
     Napi::Value CommentCtorFn(const Napi::CallbackInfo &info)
     {
@@ -56,35 +46,6 @@ namespace lib_ruby_parser_node
         self.Set("magic_comments", info[4]);
         self.Set("input", info[5]);
         return env.Null();
-    }
-
-    Napi::Value convert(lib_ruby_parser::Diagnostic diagnostic, Napi::Env env)
-    {
-        Napi::String level;
-        switch (diagnostic.level)
-        {
-        case lib_ruby_parser::ErrorLevel::WARNING:
-            level = Napi::String::New(env, "warning");
-            break;
-        case lib_ruby_parser::ErrorLevel::ERROR:
-            level = Napi::String::New(env, "error");
-            break;
-        }
-        return DiagnosticCtor.New({
-            level,
-            Napi::String::New(env, diagnostic.render_message()),
-            convert(std::move(diagnostic.loc), env),
-        });
-    }
-
-    Napi::Value convert(std::vector<lib_ruby_parser::Diagnostic> diagnostics, Napi::Env env)
-    {
-        Napi::Array arr = Napi::Array::New(env, diagnostics.size());
-        for (size_t i = 0; i < diagnostics.size(); i++)
-        {
-            arr.Set(i, convert(std::move(diagnostics[i]), env));
-        }
-        return arr;
     }
 
     Napi::Value convert(lib_ruby_parser::Comment comment, Napi::Env env)
@@ -190,11 +151,7 @@ namespace lib_ruby_parser_node
 
         Loc::Init(env, exports);
         Token::Init(env, exports);
-
-        fn = Napi::Function::New(env, DiagnosticCtorFn, "Diagnostic");
-        DiagnosticCtor = Napi::Persistent(fn);
-        DiagnosticCtor.SuppressDestruct();
-        exports.Set("Diagnostic", fn);
+        Diagnostic::Init(env, exports);
 
         fn = Napi::Function::New(env, CommentCtorFn, "Comment");
         CommentCtor = Napi::Persistent(fn);

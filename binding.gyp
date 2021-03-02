@@ -2,7 +2,13 @@
     "targets": [
         {
             "target_name": "ruby_parser",
-            "sources": [ "node_bindings.cc", "loc.cc", "input.cc", "token.cc" ],
+            "sources": [
+                "node_bindings.cc",
+                "loc.cc",
+                "input.cc",
+                "token.cc",
+                "diagnostic.cc",
+            ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",
                 "."
