@@ -58,16 +58,6 @@ namespace lib_ruby_parser_node
         return env.Null();
     }
 
-    Napi::Value convert(std::vector<lib_ruby_parser::Token> tokens, Napi::Env env)
-    {
-        Napi::Array arr = Napi::Array::New(env, tokens.size());
-        for (size_t i = 0; i < tokens.size(); i++)
-        {
-            arr.Set(i, convert(std::move(tokens[i]), env));
-        }
-        return arr;
-    }
-
     Napi::Value convert(lib_ruby_parser::Diagnostic diagnostic, Napi::Env env)
     {
         Napi::String level;

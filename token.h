@@ -17,6 +17,7 @@ namespace lib_ruby_parser_node
     };
 
     Napi::Value convert(lib_ruby_parser::Token token, Napi::Env env);
+    Napi::Value convert(std::vector<lib_ruby_parser::Token> tokens, Napi::Env env);
 }
 
 #endif // LIB_RUBY_PARSER_NODE_TOKEN_H

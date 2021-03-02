@@ -49,4 +49,14 @@ namespace lib_ruby_parser_node
             convert(std::move(token.loc), env),
         });
     }
+
+    Napi::Value convert(std::vector<lib_ruby_parser::Token> tokens, Napi::Env env)
+    {
+        Napi::Array arr = Napi::Array::New(env, tokens.size());
+        for (size_t i = 0; i < tokens.size(); i++)
+        {
+            arr.Set(i, convert(std::move(tokens[i]), env));
+        }
+        return arr;
+    }
 }
