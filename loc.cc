@@ -63,7 +63,7 @@ namespace lib_ruby_parser_node
         }
         else
         {
-            Napi::TypeError::New(env, "new Loc() takes two numbers").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "new Loc() takes 2 numbers").ThrowAsJavaScriptException();
         }
     }
 

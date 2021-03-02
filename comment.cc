@@ -34,7 +34,7 @@ namespace lib_ruby_parser_node
         }
         else
         {
-            Napi::TypeError::New(env, "new Comment() takes 3 arguments").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "new Comment() takes 2 arguments").ThrowAsJavaScriptException();
         }
     }
 

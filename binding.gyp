@@ -9,6 +9,7 @@
                 "token.cc",
                 "diagnostic.cc",
                 "comment.cc",
+                "magic_comment.cc",
             ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",
