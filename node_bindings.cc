@@ -12,6 +12,7 @@
 #include "comment.h"
 #include "magic_comment.h"
 #include "parser_result.h"
+#include "node.h"
 
 namespace lib_ruby_parser_node
 {

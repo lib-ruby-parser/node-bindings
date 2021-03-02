@@ -1,5 +1,5 @@
 #include "parser_result.h"
-#include "convert_gen.h"
+#include "node.h"
 #include "token.h"
 #include "diagnostic.h"
 #include "comment.h"

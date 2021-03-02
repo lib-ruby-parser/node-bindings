@@ -11,6 +11,7 @@
                 "diagnostic.cc",
                 "comment.cc",
                 "magic_comment.cc",
+                "node.cc",
                 "parser_result.cc",
             ],
             "include_dirs": [

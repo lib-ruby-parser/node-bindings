@@ -101,7 +101,6 @@ fn init_exports(node: &Node) -> String {
 }
 
 fn main() {
-    let path = relative_path("../convert_gen.h");
     let nodes = lib_ruby_parser_nodes::nodes();
 
     let ctor_definitions: Vec<String> = nodes.iter().map(ctor_definition).collect();
@@ -111,24 +110,38 @@ fn main() {
     let comparisons: Vec<String> = nodes.iter().map(build_comparison).collect();
     let init_exports: Vec<String> = nodes.iter().map(init_exports).collect();
 
-    let contents = format!(
-        "#ifndef LIB_RUBY_PARSER_CONVERT_GEN_H
-#define LIB_RUBY_PARSER_CONVERT_GEN_H
+    let node_h = format!(
+        "#ifndef LIB_RUBY_PARSER_NODE_NODE_H
+#define LIB_RUBY_PARSER_NODE_NODE_H
 
 #include <napi.h>
 #include \"lib-ruby-parser.h\"
 
-template<class> inline constexpr bool always_false_v = false;
+namespace lib_ruby_parser_node
+{{
+
+    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Node> node, Napi::Env env);
+    void InitNodeTypes(Napi::Env env, Napi::Object exports);
+
+}} // namespace lib_ruby_parser_node
+
+#endif // LIB_RUBY_PARSER_NODE_NODE_H
+"
+    );
+
+    let node_cc = format!(
+        "#include \"node.h\"
+#include \"loc.h\"
+#include \"bytes.h\"
 
 namespace lib_ruby_parser_node
 {{
     {ctor_definitions}
+
     {ctor_fn_definitions}
 
     Napi::Value convert(std::unique_ptr<lib_ruby_parser::Node> node, Napi::Env env);
     Napi::Value convert(lib_ruby_parser::Node node, Napi::Env env);
-    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Loc> loc, Napi::Env env);
-    Napi::Value convert(lib_ruby_parser::Bytes bytes, Napi::Env env);
 
     Napi::Value convert(std::string s, Napi::Env env)
     {{
@@ -177,8 +190,6 @@ namespace lib_ruby_parser_node
         {init_exports}
     }}
 }} // namespace lib_ruby_parser_node
-
-#endif // LIB_RUBY_PARSER_CONVERT_GEN_H
 ",
         converters = converters.join("\n    "),
         comparisons = comparisons.join("\n            "),
@@ -187,5 +198,6 @@ namespace lib_ruby_parser_node
         init_exports = init_exports.join("\n        ")
     );
 
-    std::fs::write(&path, &contents).unwrap();
+    std::fs::write("../node.h", &node_h).unwrap();
+    std::fs::write("../node.cc", &node_cc).unwrap();
 }
