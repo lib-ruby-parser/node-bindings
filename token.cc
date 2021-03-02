@@ -11,7 +11,8 @@ namespace lib_ruby_parser_node
         Napi::HandleScope scope(env);
 
         Napi::Function ctor = DefineClass(
-            env, "Token",
+            env,
+            "Token",
             {
                 InstanceValue("name", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
                 InstanceValue("value", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
@@ -25,16 +26,27 @@ namespace lib_ruby_parser_node
 
     Token::Token(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Token>(info)
     {
+        auto env = info.Env();
+        auto self = info.This().As<Napi::Object>();
+
+        if (info.Length() == 3)
+        {
+            self.Set("name", info[0]);
+            self.Set("value", info[1]);
+            self.Set("loc", info[2]);
+        }
+        else
+        {
+            Napi::TypeError::New(env, "new Token() takes 3 arguments").ThrowAsJavaScriptException();
+        }
     }
 
     Napi::Value convert(lib_ruby_parser::Token token, Napi::Env env)
     {
-        auto result = Token::ctor.New({});
-
-        result.Set("name", Napi::Value::From(env, token.name()));
-        result.Set("value", Napi::Value::From(env, Bytes(std::move(token.token_value)).ToV8(env)));
-        result.Set("loc", convert(std::move(token.loc), env));
-
-        return result;
+        return Token::ctor.New({
+            Napi::Value::From(env, token.name()),
+            Napi::Value::From(env, Bytes(std::move(token.token_value)).ToV8(env)),
+            convert(std::move(token.loc), env),
+        });
     }
 }

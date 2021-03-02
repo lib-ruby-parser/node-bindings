@@ -29,23 +29,26 @@ namespace lib_ruby_parser_node
     {
         auto env = info.Env();
 
-        if (!info[0].IsExternal())
+        if (info[0].IsExternal())
+        {
+            auto ptr = info[0].As<Napi::External<Input>>().Data();
+            auto input = lib_ruby_parser::Input(ptr);
+
+            auto self = info.This().ToObject();
+
+            auto bytes = input.range(
+                self.Get("begin").ToNumber(),
+                self.Get("end").ToNumber());
+
+            input.ptr = nullptr;
+
+            return Bytes(std::move(bytes)).ToV8(env);
+        }
+        else
         {
             Napi::TypeError::New(env, "argument must Input").ThrowAsJavaScriptException();
             return env.Null();
         }
-        auto ptr = info[0].As<Napi::External<Input>>().Data();
-        auto input = lib_ruby_parser::Input(ptr);
-
-        auto self = info.This().ToObject();
-
-        auto bytes = input.range(
-            self.Get("begin").ToNumber(),
-            self.Get("end").ToNumber());
-
-        input.ptr = nullptr;
-
-        return Bytes(std::move(bytes)).ToV8(env);
     }
 
     Loc::Loc(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Loc>(info)
