@@ -38,13 +38,6 @@ function assert_node_type(node, type, prefix) {
     assert(node instanceof type, `[${prefix}] expected node type to be ${type}, got ${node.type}`)
 }
 
-function loc(begin, end) {
-    let loc = new Loc()
-    loc.begin = begin
-    loc.end = end
-    return loc
-}
-
 function assert_loc(loc, begin, end, prefix) {
     assert(loc instanceof Loc, `[${prefix}] expected ${loc} to be an instance of Loc`)
     assert_eq(loc.begin, begin, `[${prefix}] begin`)
@@ -115,13 +108,13 @@ class TestSuite {
         const { tokens } = result
         assert(tokens.length == 7)
 
-        assert_token(tokens[0], "kSELF", "self", loc(0, 4), 'tokens[0]')
-        assert_token(tokens[1], "tDOT", ".", loc(4, 5), 'tokens[1]')
-        assert_token(tokens[2], "tIDENTIFIER", "foo", loc(5, 8), 'tokens[2]')
-        assert_token(tokens[3], "tLPAREN2", "(", loc(8, 9), 'tokens[3]')
-        assert_token(tokens[4], "tINTEGER", "123", loc(9, 12), 'tokens[4]')
-        assert_token(tokens[5], "tRPAREN", ")", loc(12, 13), 'tokens[5]')
-        assert_token(tokens[6], "EOF", "", loc(13, 13), 'tokens[6]')
+        assert_token(tokens[0], "kSELF", "self", new Loc(0, 4), 'tokens[0]')
+        assert_token(tokens[1], "tDOT", ".", new Loc(4, 5), 'tokens[1]')
+        assert_token(tokens[2], "tIDENTIFIER", "foo", new Loc(5, 8), 'tokens[2]')
+        assert_token(tokens[3], "tLPAREN2", "(", new Loc(8, 9), 'tokens[3]')
+        assert_token(tokens[4], "tINTEGER", "123", new Loc(9, 12), 'tokens[4]')
+        assert_token(tokens[5], "tRPAREN", ")", new Loc(12, 13), 'tokens[5]')
+        assert_token(tokens[6], "EOF", "", new Loc(13, 13), 'tokens[6]')
     }
 
     test_diagnostics() {
@@ -163,10 +156,10 @@ class TestSuite {
         const { tokens } = result
         assert_eq(tokens.length, 4, 'tokens.length')
 
-        assert_token(tokens[0], "tINTEGER", "3", loc(21, 22), 'tokens[0]')
-        assert_token(tokens[1], "tPLUS", "+", loc(23, 24), 'tokens[1]')
-        assert_token(tokens[2], "tINTEGER", "3", loc(25, 26), 'tokens[2]')
-        assert_token(tokens[3], "EOF", "", loc(26, 26), 'tokens[3]')
+        assert_token(tokens[0], "tINTEGER", "3", new Loc(21, 22), 'tokens[0]')
+        assert_token(tokens[1], "tPLUS", "+", new Loc(23, 24), 'tokens[1]')
+        assert_token(tokens[2], "tINTEGER", "3", new Loc(25, 26), 'tokens[2]')
+        assert_token(tokens[3], "EOF", "", new Loc(26, 26), 'tokens[3]')
 
         assert_eq(custom_decoder_called_with.encoding, 'US-ASCII', 'encoding given to custom decoder')
         assert_array_eq(custom_decoder_called_with.input, input, 'input given to custom decoder')
@@ -194,7 +187,7 @@ class TestSuite {
     test_loc_source() {
         const input = parse(str_to_bytes("foo.bar(42)"), {}).input;
 
-        let source = loc(1, 8).source(input);
+        let source = new Loc(1, 8).source(input);
         assert_eq(bytes_to_str(source), "oo.bar(");
     }
 }

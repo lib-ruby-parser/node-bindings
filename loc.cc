@@ -11,7 +11,8 @@ namespace lib_ruby_parser_node
         Napi::HandleScope scope(env);
 
         Napi::Function ctor = DefineClass(
-            env, "Loc",
+            env,
+            "Loc",
             {
                 InstanceValue("begin", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
                 InstanceValue("end", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
@@ -49,6 +50,18 @@ namespace lib_ruby_parser_node
 
     Loc::Loc(const Napi::CallbackInfo &info) : Napi::ObjectWrap<Loc>(info)
     {
+        auto env = info.Env();
+        auto self = info.This().As<Napi::Object>();
+
+        if (info.Length() == 2 && info[0].IsNumber() && info[1].IsNumber())
+        {
+            self.Set("begin", info[0]);
+            self.Set("end", info[1]);
+        }
+        else
+        {
+            Napi::TypeError::New(env, "new Loc() takes two numbers").ThrowAsJavaScriptException();
+        }
     }
 
     Napi::Value convert(std::unique_ptr<lib_ruby_parser::Loc> loc, Napi::Env env)
@@ -57,11 +70,9 @@ namespace lib_ruby_parser_node
         {
             return env.Null();
         }
-        auto result = Loc::ctor.New({});
-
-        result.Set("begin", Napi::Value::From(env, loc->begin));
-        result.Set("end", Napi::Value::From(env, loc->end));
-
-        return result;
+        return Loc::ctor.New({
+            Napi::Value::From(env, loc->begin),
+            Napi::Value::From(env, loc->end),
+        });
     }
 }
