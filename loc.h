@@ -16,7 +16,6 @@ namespace lib_ruby_parser_node
         Napi::Value Source(const Napi::CallbackInfo &info);
 
         Loc(const Napi::CallbackInfo &info);
-        static Napi::Value New(const Napi::CallbackInfo &info, std::unique_ptr<lib_ruby_parser::Loc> loc);
     };
 
     Napi::Value convert(std::unique_ptr<lib_ruby_parser::Loc> loc, Napi::Env env);

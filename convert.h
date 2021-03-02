@@ -7,24 +7,14 @@
 #include "bytes.h"
 #include "input.h"
 #include "loc.h"
+#include "token.h"
 
 namespace lib_ruby_parser_node
 {
-    Napi::FunctionReference TokenCtor;
     Napi::FunctionReference DiagnosticCtor;
     Napi::FunctionReference CommentCtor;
     Napi::FunctionReference MagicCommentCtor;
     Napi::FunctionReference ParserResultCtor;
-
-    Napi::Value TokenCtorFn(const Napi::CallbackInfo &info)
-    {
-        Napi::Object self = info.This().As<Napi::Object>();
-        Napi::Env env = info.Env();
-        self.Set("name", info[0]);
-        self.Set("value", info[1]);
-        self.Set("loc", info[2]);
-        return env.Null();
-    }
 
     Napi::Value DiagnosticCtorFn(const Napi::CallbackInfo &info)
     {
@@ -66,15 +56,6 @@ namespace lib_ruby_parser_node
         self.Set("magic_comments", info[4]);
         self.Set("input", info[5]);
         return env.Null();
-    }
-
-    Napi::Value convert(lib_ruby_parser::Token token, Napi::Env env)
-    {
-        return TokenCtor.New({
-            Napi::Value::From(env, token.name()),
-            Napi::Value::From(env, Bytes(std::move(token.token_value)).ToV8(env)),
-            convert(std::move(token.loc), env),
-        });
     }
 
     Napi::Value convert(std::vector<lib_ruby_parser::Token> tokens, Napi::Env env)
@@ -218,11 +199,7 @@ namespace lib_ruby_parser_node
         Napi::Function fn;
 
         Loc::Init(env, exports);
-
-        fn = Napi::Function::New(env, TokenCtorFn, "Token");
-        TokenCtor = Napi::Persistent(fn);
-        TokenCtor.SuppressDestruct();
-        exports.Set("Token", fn);
+        Token::Init(env, exports);
 
         fn = Napi::Function::New(env, DiagnosticCtorFn, "Diagnostic");
         DiagnosticCtor = Napi::Persistent(fn);
