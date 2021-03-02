@@ -102,7 +102,7 @@ fn init_exports(node: &Node) -> String {
 
 fn main() {
     let path = relative_path("../convert_gen.h");
-    let nodes = lib_ruby_parser_nodes::nodes().unwrap();
+    let nodes = lib_ruby_parser_nodes::nodes();
 
     let ctor_definitions: Vec<String> = nodes.iter().map(ctor_definition).collect();
     let ctor_fn_definitions: Vec<String> = nodes.iter().map(ctor_fn_definition).collect();
@@ -127,7 +127,7 @@ namespace lib_ruby_parser_node
 
     Napi::Value convert(std::unique_ptr<lib_ruby_parser::Node> node, Napi::Env env);
     Napi::Value convert(lib_ruby_parser::Node node, Napi::Env env);
-    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Range> range, Napi::Env env);
+    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Loc> loc, Napi::Env env);
     Napi::Value convert(lib_ruby_parser::Bytes bytes, Napi::Env env);
 
     Napi::Value convert(std::string s, Napi::Env env)

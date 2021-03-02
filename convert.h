@@ -1,38 +1,20 @@
-#ifndef LIB_RUBY_PARSER_CONVERT_H
-#define LIB_RUBY_PARSER_CONVERT_H
+#ifndef LIB_RUBY_PARSER_NODE_CONVERT_H
+#define LIB_RUBY_PARSER_NODE_CONVERT_H
 
 #include <napi.h>
 #include "lib-ruby-parser.h"
 #include "convert_gen.h"
 #include "bytes.h"
+#include "input.h"
+#include "loc.h"
 
 namespace lib_ruby_parser_node
 {
-    Napi::FunctionReference LocCtor;
-    Napi::FunctionReference RangeCtor;
     Napi::FunctionReference TokenCtor;
     Napi::FunctionReference DiagnosticCtor;
     Napi::FunctionReference CommentCtor;
     Napi::FunctionReference MagicCommentCtor;
     Napi::FunctionReference ParserResultCtor;
-
-    Napi::Value LocCtorFn(const Napi::CallbackInfo &info)
-    {
-        Napi::Object self = info.This().As<Napi::Object>();
-        Napi::Env env = info.Env();
-        self.Set("begin", info[0]);
-        self.Set("end", info[1]);
-        return env.Null();
-    }
-
-    Napi::Value RangeCtorFn(const Napi::CallbackInfo &info)
-    {
-        Napi::Object self = info.This().As<Napi::Object>();
-        Napi::Env env = info.Env();
-        self.Set("begin_pos", info[0]);
-        self.Set("end_pos", info[1]);
-        return env.Null();
-    }
 
     Napi::Value TokenCtorFn(const Napi::CallbackInfo &info)
     {
@@ -50,7 +32,7 @@ namespace lib_ruby_parser_node
         Napi::Env env = info.Env();
         self.Set("level", info[0]);
         self.Set("message", info[1]);
-        self.Set("range", info[2]);
+        self.Set("loc", info[2]);
         return env.Null();
     }
 
@@ -86,28 +68,6 @@ namespace lib_ruby_parser_node
         return env.Null();
     }
 
-    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Loc> loc, Napi::Env env)
-    {
-        if (!loc)
-        {
-            return env.Null();
-        }
-        return LocCtor.New({Napi::Value::From(env, loc->begin),
-                            Napi::Value::From(env, loc->end)});
-    }
-
-    Napi::Value convert(std::unique_ptr<lib_ruby_parser::Range> range, Napi::Env env)
-    {
-        if (!range)
-        {
-            return env.Null();
-        }
-        return RangeCtor.New({
-            Napi::Value::From(env, range->begin_pos),
-            Napi::Value::From(env, range->end_pos),
-        });
-    }
-
     Napi::Value convert(lib_ruby_parser::Token token, Napi::Env env)
     {
         return TokenCtor.New({
@@ -141,8 +101,8 @@ namespace lib_ruby_parser_node
         }
         return DiagnosticCtor.New({
             level,
-            Napi::String::New(env, diagnostic.message),
-            convert(std::move(diagnostic.range), env),
+            Napi::String::New(env, diagnostic.render_message()),
+            convert(std::move(diagnostic.loc), env),
         });
     }
 
@@ -222,6 +182,11 @@ namespace lib_ruby_parser_node
         return arr;
     }
 
+    Napi::Value convert(lib_ruby_parser::Input input, Napi::Env env)
+    {
+        return Input::New(env, std::move(input));
+    }
+
     Napi::Value convert(std::unique_ptr<lib_ruby_parser::ParserResult> result, Napi::Env env)
     {
         if (!result)
@@ -234,7 +199,7 @@ namespace lib_ruby_parser_node
             convert(std::move(result->diagnostics), env),
             convert(std::move(result->comments), env),
             convert(std::move(result->magic_comments), env),
-            Bytes(std::move(result->input)).ToV8(env),
+            convert(std::move(result->input), env),
         });
     }
 
@@ -252,15 +217,7 @@ namespace lib_ruby_parser_node
     {
         Napi::Function fn;
 
-        fn = Napi::Function::New(env, LocCtorFn, "Loc");
-        LocCtor = Napi::Persistent(fn);
-        LocCtor.SuppressDestruct();
-        exports.Set("Loc", fn);
-
-        fn = Napi::Function::New(env, RangeCtorFn, "Range");
-        RangeCtor = Napi::Persistent(fn);
-        RangeCtor.SuppressDestruct();
-        exports.Set("Range", fn);
+        Loc::Init(env, exports);
 
         fn = Napi::Function::New(env, TokenCtorFn, "Token");
         TokenCtor = Napi::Persistent(fn);
@@ -289,4 +246,4 @@ namespace lib_ruby_parser_node
     }
 } // namespace lib_ruby_parser_node
 
-#endif // LIB_RUBY_PARSER_CONVERT_H
+#endif // LIB_RUBY_PARSER_NODE_CONVERT_H
