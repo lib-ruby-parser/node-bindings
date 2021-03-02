@@ -3,8 +3,8 @@ node_modules/
 package-lock.json
 build-convert/target
 build-convert/Cargo.lock
-node.h
-node.cc
+src/node.h
+src/node.cc
 
 lib-ruby-parser.a
-lib-ruby-parser.h
+src/lib-ruby-parser.h

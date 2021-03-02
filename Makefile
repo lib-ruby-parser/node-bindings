@@ -69,5 +69,5 @@ clean:
 # // cpp bindings files
 
 download-cpp-bindings:
-	wget -q $(HEADER_URL) -O lib-ruby-parser.h
+	wget -q $(HEADER_URL) -O src/lib-ruby-parser.h
 	wget -q $(LIB_URL) -O $(LOCAL_LIB_NAME)

@@ -3,20 +3,20 @@
         {
             "target_name": "ruby_parser",
             "sources": [
-                "node_bindings.cc",
-                "loc.cc",
-                "input.cc",
-                "bytes.cc",
-                "token.cc",
-                "diagnostic.cc",
-                "comment.cc",
-                "magic_comment.cc",
-                "node.cc",
-                "parser_result.cc",
+                "src/node_bindings.cc",
+                "src/loc.cc",
+                "src/input.cc",
+                "src/bytes.cc",
+                "src/token.cc",
+                "src/diagnostic.cc",
+                "src/comment.cc",
+                "src/magic_comment.cc",
+                "src/node.cc",
+                "src/parser_result.cc",
             ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",
-                "."
+                "src"
             ],
             "cflags_cc": [ "-std=c++17" ],
             "xcode_settings": {

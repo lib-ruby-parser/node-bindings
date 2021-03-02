@@ -1,17 +1,6 @@
 extern crate lib_ruby_parser_nodes;
 
 use lib_ruby_parser_nodes::{Field, Node};
-use std::path::Path;
-
-fn relative_path(path: &str) -> String {
-    Path::new(file!())
-        .parent()
-        .unwrap()
-        .join(path)
-        .to_str()
-        .unwrap()
-        .to_owned()
-}
 
 fn build_comparison(node: &Node) -> String {
     format!(
@@ -198,6 +187,6 @@ namespace lib_ruby_parser_node
         init_exports = init_exports.join("\n        ")
     );
 
-    std::fs::write("../node.h", &node_h).unwrap();
-    std::fs::write("../node.cc", &node_cc).unwrap();
+    std::fs::write("../src/node.h", &node_h).unwrap();
+    std::fs::write("../src/node.cc", &node_cc).unwrap();
 }
