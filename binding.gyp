@@ -11,6 +11,7 @@
                 "diagnostic.cc",
                 "comment.cc",
                 "magic_comment.cc",
+                "parser_result.cc",
             ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",
