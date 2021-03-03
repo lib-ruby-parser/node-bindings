@@ -1,5 +1,7 @@
 #include "diagnostic.h"
 #include "loc.h"
+#include "message.h"
+#include "convert/string.h"
 
 namespace lib_ruby_parser_node
 {
@@ -15,6 +17,7 @@ namespace lib_ruby_parser_node
             {
                 InstanceValue("name", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
                 InstanceValue("message", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
+                InstanceValue("rendered", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
                 InstanceValue("loc", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
             });
         exports.Set("Diagnostic", ctor);
@@ -28,11 +31,12 @@ namespace lib_ruby_parser_node
         auto env = info.Env();
         auto self = info.This().As<Napi::Object>();
 
-        if (info.Length() == 3)
+        if (info.Length() == 4)
         {
             self.Set("level", info[0]);
             self.Set("message", info[1]);
-            self.Set("loc", info[2]);
+            self.Set("rendered", info[2]);
+            self.Set("loc", info[3]);
         }
         else
         {
@@ -52,9 +56,12 @@ namespace lib_ruby_parser_node
             level = Napi::String::New(env, "error");
             break;
         }
+        auto rendered = diagnostic.render_message();
+
         return Diagnostic::ctor.New({
             level,
-            Napi::String::New(env, diagnostic.render_message()),
+            convert(std::move(diagnostic.message), env),
+            convert(rendered, env),
             convert(std::move(diagnostic.loc), env),
         });
     }

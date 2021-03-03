@@ -13,6 +13,7 @@
 #include "magic_comment.h"
 #include "parser_result.h"
 #include "node.h"
+#include "message.h"
 
 namespace lib_ruby_parser_node
 {
@@ -147,6 +148,7 @@ namespace lib_ruby_parser_node
         ParserResult::Init(env, exports);
 
         InitNodeTypes(env, exports);
+        InitMessageTypes(env, exports);
 
         return exports;
     }

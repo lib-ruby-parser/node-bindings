@@ -8,7 +8,7 @@ if (!path_to_require) {
 }
 
 console.log(`requiring ${path_to_require}`)
-const { parse, Loc, Send, Self_, Int, Token, Diagnostic, bytes_to_utf8_lossy } = require(path_to_require)
+const { parse, Loc, Send, Self_, Int, Token, Diagnostic, bytes_to_utf8_lossy, UnexpectedToken } = require(path_to_require)
 const assert = require('assert').strict
 const inspect = require('util').inspect
 
@@ -38,18 +38,24 @@ function assert_node_type(node, type, prefix) {
     assert(node instanceof type, `[${prefix}] expected node type to be ${type}, got ${node.type}`)
 }
 
-function assert_loc(loc, begin, end, prefix) {
-    assert(loc instanceof Loc, `[${prefix}] expected ${loc} to be an instance of Loc`)
-    assert_eq(loc.begin, begin, `[${prefix}] begin`)
-    assert_eq(loc.end, end, `[${prefix}] end`)
+function assert_loc(actual, expected, prefix) {
+    assert(actual instanceof Loc, `[${prefix}] expected ${actual} to be an instance of Loc`)
+    assert_eq(actual.begin, expected.begin, `[${prefix}] begin`)
+    assert_eq(actual.end, expected.end, `[${prefix}] end`)
 }
 
 function assert_token(token, name, value, loc, prefix) {
     assert(token instanceof Token, `[${prefix}] expected ${token} to be an instance of Token`)
     assert_eq(token.name, name, `[${prefix}].name`)
     assert_eq(bytes_to_utf8_lossy(token.value), value, `[${prefix}].value`)
-    assert_eq(token.loc.begin, loc.begin, `[${prefix}].loc.begin`)
-    assert_eq(token.loc.end, loc.end, `[${prefix}].loc.end`)
+    assert_loc(token.loc, loc, `[${prefix}].loc`)
+}
+
+function assert_diagnostic(diagnostic, type, loc, rendered, prefix) {
+    assert(diagnostic instanceof Diagnostic, `[${prefix}] expected diagnostic to be Diagnostic, got ${diagnostic}`)
+    assert(diagnostic.message instanceof type, `[${prefix}] expected diagnostic.message to be ${type}, got ${diagnostic.message}`)
+    assert_loc(diagnostic.loc, loc, `[${prefix}].loc`)
+    assert_eq(diagnostic.rendered, rendered, `[${prefix}].rendered`)
 }
 
 function print_parser_result(parser_result) {
@@ -80,16 +86,16 @@ class TestSuite {
 
         assert_node_type(ast, Send, 'send')
         const send = ast
-        assert_loc(send.dot_l, 4, 5, 'send.dot_l')
-        assert_loc(send.selector_l, 5, 8, 'send.selector_l')
-        assert_loc(send.begin_l, 8, 9, 'send.begin_l')
-        assert_loc(send.end_l, 12, 13, 'send.end_l')
+        assert_loc(send.dot_l, new Loc(4, 5), 'send.dot_l')
+        assert_loc(send.selector_l, new Loc(5, 8), 'send.selector_l')
+        assert_loc(send.begin_l, new Loc(8, 9), 'send.begin_l')
+        assert_loc(send.end_l, new Loc(12, 13), 'send.end_l')
         assert_eq(send.operator_l, null, '.operator_l')
-        assert_loc(send.expression_l, 0, 13, 'send.expression_l')
+        assert_loc(send.expression_l, new Loc(0, 13), 'send.expression_l')
 
         assert_node_type(send.recv, Self_)
         const self = send.recv
-        assert_loc(self.expression_l, 0, 4, 'self.expression_l')
+        assert_loc(self.expression_l, new Loc(0, 4), 'self.expression_l')
 
         assert_eq(send.method_name, "foo", 'send.method_name')
 
@@ -98,7 +104,7 @@ class TestSuite {
         const arg = send.args[0]
         assert_eq(arg.value, "123", 'arg.value')
         assert_eq(arg.operator_l, null, 'arg.operator_l')
-        assert_loc(arg.expression_l, 9, 12, 'arg.expression_l')
+        assert_loc(arg.expression_l, new Loc(9, 12), 'arg.expression_l')
     }
 
     test_tokens() {
@@ -118,11 +124,14 @@ class TestSuite {
     }
 
     test_diagnostics() {
-        const result = parse(str_to_bytes("self.foo(123)"), { record_tokens: true })
+        const result = parse(str_to_bytes("(123]"), { record_tokens: true })
         assert(result !== null, "expected result to be non-null")
 
         const { diagnostics } = result
-        assert_eq(diagnostics.length, 0, diagnostics.length)
+        assert_eq(diagnostics.length, 1, 'diagnostics.length')
+
+        assert_diagnostic(diagnostics[0], UnexpectedToken, new Loc(4, 5), 'unexpected tRBRACK', 'diagnosticss[0]')
+        assert_eq(diagnostics[0].message.token_name, 'tRBRACK', 'diagnostics[0].message.token_name')
     }
 
     test_comments() {
@@ -180,8 +189,8 @@ class TestSuite {
         const diagnostic = result.diagnostics[0]
         assert(diagnostic instanceof Diagnostic)
         assert_eq(diagnostic.level, 'error')
-        assert_eq(diagnostic.message, 'encoding error: DecodingError("test error")')
-        assert_loc(diagnostic.loc, 12, 20)
+        assert_eq(diagnostic.rendered, 'encoding error: DecodingError("test error")')
+        assert_loc(diagnostic.loc, new Loc(12, 20))
     }
 
     test_loc_source() {

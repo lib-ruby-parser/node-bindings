@@ -13,6 +13,9 @@
                 "src/magic_comment.cc",
                 "src/node.cc",
                 "src/parser_result.cc",
+                "src/message.cc",
+                "src/convert/size_t.cc",
+                "src/convert/string.cc",
             ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",
