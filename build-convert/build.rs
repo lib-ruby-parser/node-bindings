@@ -16,4 +16,6 @@ fn main() {
 
     gen::MessageH::new(&messages).write();
     gen::MessageCc::new(&messages).write();
+
+    gen::TypedDTs::new(&nodes, &messages).write();
 }

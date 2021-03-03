@@ -18,9 +18,12 @@ namespace lib_ruby_parser_node
             env,
             "ParserResult",
             {
-                InstanceValue("name", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
-                InstanceValue("message", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
-                InstanceValue("loc", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
+                InstanceValue("ast", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
+                InstanceValue("tokens", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
+                InstanceValue("diagnostics", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
+                InstanceValue("comments", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
+                InstanceValue("magic_comments", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
+                InstanceValue("input", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
             });
         exports.Set("ParserResult", ctor);
 

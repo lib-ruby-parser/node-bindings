@@ -7,3 +7,6 @@ mod message_h;
 pub(crate) use message_h::MessageH;
 mod message_cc;
 pub(crate) use message_cc::MessageCc;
+
+mod types_d_ts;
+pub(crate) use types_d_ts::TypedDTs;

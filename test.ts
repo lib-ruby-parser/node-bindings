@@ -1,18 +1,9 @@
-#!/usr/bin/env node
+import { parse, Loc, Send, Self_, Int, Token, Diagnostic, bytes_to_utf8_lossy, UnexpectedToken, ParserOptions, EncodingError } from 'lib-ruby-parser';
 
-let path_to_require = process.argv[2]
-
-if (!path_to_require) {
-    console.log('no argument specified, using debug build')
-    path_to_require = './build/Debug/ruby_parser.node'
-}
-
-console.log(`requiring ${path_to_require}`)
-const { parse, Loc, Send, Self_, Int, Token, Diagnostic, bytes_to_utf8_lossy, UnexpectedToken } = require(path_to_require)
 const assert = require('assert').strict
 const inspect = require('util').inspect
 
-function assert_eq(actual, expected, prefix) {
+function assert_eq<T>(actual: T, expected: T, prefix: string) {
     assert(actual === expected, `[${prefix}] assertion failed: expected ${expected}, got ${actual}`)
 }
 
@@ -23,37 +14,39 @@ function assert_array_eq(actual, expected, prefix) {
     }
 }
 
-function assert_parse_throws(...args) {
+function assert_parse_throws(input: Uint8Array, options: ParserOptions) {
     let thrown = false
     try {
-        parse(...args)
+        parse(input, options)
     } catch (e) {
         thrown = true
     }
 
-    assert(thrown, `expected an error to be thrown for "${args}"`)
+    assert(thrown, `expected an error to be thrown for "${input}, ${options}"`)
 }
 
-function assert_node_type(node, type, prefix) {
-    assert(node instanceof type, `[${prefix}] expected node type to be ${type}, got ${node.type}`)
-}
-
-function assert_loc(actual, expected, prefix) {
-    assert(actual instanceof Loc, `[${prefix}] expected ${actual} to be an instance of Loc`)
+function assert_loc(actual: any, expected: Loc, prefix) {
+    if (!(actual instanceof Loc)) {
+        throw `[${prefix}] expected ${actual} to be an instance of Loc`
+    }
     assert_eq(actual.begin, expected.begin, `[${prefix}] begin`)
     assert_eq(actual.end, expected.end, `[${prefix}] end`)
 }
 
-function assert_token(token, name, value, loc, prefix) {
-    assert(token instanceof Token, `[${prefix}] expected ${token} to be an instance of Token`)
+function assert_token(token: any, name: string, value: string, loc: Loc, prefix: string): token is Token {
+    if (!(token instanceof Token)) {
+        throw `[${prefix}] expected ${token} to be an instance of Token`
+    }
     assert_eq(token.name, name, `[${prefix}].name`)
     assert_eq(bytes_to_utf8_lossy(token.value), value, `[${prefix}].value`)
     assert_loc(token.loc, loc, `[${prefix}].loc`)
+    return true;
 }
 
-function assert_diagnostic(diagnostic, type, loc, rendered, prefix) {
-    assert(diagnostic instanceof Diagnostic, `[${prefix}] expected diagnostic to be Diagnostic, got ${diagnostic}`)
-    assert(diagnostic.message instanceof type, `[${prefix}] expected diagnostic.message to be ${type}, got ${diagnostic.message}`)
+function assert_diagnostic(diagnostic: any, loc: Loc, rendered: string, prefix: string) {
+    if (!(diagnostic instanceof Diagnostic)) {
+        throw `[${prefix}] expected diagnostic to be Diagnostic, got ${diagnostic}`
+    }
     assert_loc(diagnostic.loc, loc, `[${prefix}].loc`)
     assert_eq(diagnostic.rendered, rendered, `[${prefix}].rendered`)
 }
@@ -62,19 +55,19 @@ function print_parser_result(parser_result) {
     console.log(inspect(parser_result, { showHidden: false, depth: null }))
 }
 
-function str_to_bytes(str) {
+function str_to_bytes(str: string) {
     const bytes = unescape(encodeURIComponent(str)).split('').map(c => c.charCodeAt(0))
     return new Uint8Array(bytes)
 }
 
-function bytes_to_str(bytes) {
+function bytes_to_str(bytes: Uint8Array) {
     return decodeURIComponent(Array.from(bytes).map(c => String.fromCharCode(c)).join(''))
 }
 
 class TestSuite {
     test_invalid_args() {
-        assert_parse_throws(42)
-        assert_parse_throws("foo", 10)
+        assert_parse_throws(42 as any, 56 as any)
+        assert_parse_throws("foo" as any, 10)
         assert_parse_throws(str_to_bytes("foo"), 10)
     }
 
@@ -84,7 +77,9 @@ class TestSuite {
 
         const { ast } = result
 
-        assert_node_type(ast, Send, 'send')
+        if (!(ast instanceof Send)) {
+            throw `wrong node type (expected Send, got ${ast})`
+        }
         const send = ast
         assert_loc(send.dot_l, new Loc(4, 5), 'send.dot_l')
         assert_loc(send.selector_l, new Loc(5, 8), 'send.selector_l')
@@ -93,14 +88,18 @@ class TestSuite {
         assert_eq(send.operator_l, null, '.operator_l')
         assert_loc(send.expression_l, new Loc(0, 13), 'send.expression_l')
 
-        assert_node_type(send.recv, Self_)
+        if (!(send.recv instanceof Self_)) {
+            throw `wrong node type (expected Self, got ${send.recv})`
+        }
         const self = send.recv
         assert_loc(self.expression_l, new Loc(0, 4), 'self.expression_l')
 
         assert_eq(send.method_name, "foo", 'send.method_name')
 
         assert_eq(send.args.length, 1, 'send.args.length')
-        assert_node_type(send.args[0], Int)
+        if (!(send.args[0] instanceof Int)) {
+            throw `wrong node type (expected Self, got ${send.args[0]})`
+        }
         const arg = send.args[0]
         assert_eq(arg.value, "123", 'arg.value')
         assert_eq(arg.operator_l, null, 'arg.operator_l')
@@ -129,9 +128,11 @@ class TestSuite {
 
         const { diagnostics } = result
         assert_eq(diagnostics.length, 1, 'diagnostics.length')
+        const diagnostic = diagnostics[0];
 
-        assert_diagnostic(diagnostics[0], UnexpectedToken, new Loc(4, 5), 'unexpected tRBRACK', 'diagnosticss[0]')
-        assert_eq(diagnostics[0].message.token_name, 'tRBRACK', 'diagnostics[0].message.token_name')
+        assert_diagnostic(diagnostic, new Loc(4, 5), 'unexpected tRBRACK', 'diagnosticss[0]')
+        if (!(diagnostic.message instanceof UnexpectedToken)) { throw `expected diagnostic.message to be UnexpectedToken, got ${diagnostic.message}` }
+        assert_eq(diagnostic.message.token_name, 'tRBRACK', 'diagnostic.message.token_name')
     }
 
     test_comments() {
@@ -152,8 +153,8 @@ class TestSuite {
 
     test_custom_decoder_ok() {
         const input = str_to_bytes("# encoding: us-ascii\n2 + 2");
-        const custom_decoder_called_with = {}
-        const custom_decoder = (encoding, input) => {
+        const custom_decoder_called_with: { encoding?: string, input?: Uint8Array } = {}
+        const custom_decoder = (encoding: string, input: Uint8Array) => {
             custom_decoder_called_with.encoding = encoding;
             custom_decoder_called_with.input = input;
             const output = str_to_bytes("# encoding: us-ascii\n3 + 3")
@@ -187,17 +188,17 @@ class TestSuite {
 
         assert_eq(result.diagnostics.length, 1, 'diagnostics.length')
         const diagnostic = result.diagnostics[0]
-        assert(diagnostic instanceof Diagnostic)
-        assert_eq(diagnostic.level, 'error')
-        assert_eq(diagnostic.rendered, 'encoding error: DecodingError("test error")')
-        assert_loc(diagnostic.loc, new Loc(12, 20))
+
+        assert_diagnostic(diagnostic, new Loc(12, 20), 'encoding error: DecodingError("test error")', 'diagnosticss[0]')
+        if (!(diagnostic.message instanceof EncodingError)) { throw `expected diagnostic.message to be UnexpectedToken, got ${diagnostic.message}` }
+        assert_eq(diagnostic.message.error, 'DecodingError("test error")', 'diagnostic.message.error')
     }
 
     test_loc_source() {
         const input = parse(str_to_bytes("foo.bar(42)"), {}).input;
 
         let source = new Loc(1, 8).source(input);
-        assert_eq(bytes_to_str(source), "oo.bar(");
+        assert_eq(bytes_to_str(source), "oo.bar(", "source of [1,8] loc");
     }
 }
 

@@ -10,3 +10,10 @@ src/message.cc
 
 lib-ruby-parser.a
 src/lib-ruby-parser.h
+
+types.d.ts
+
+pkg/LICENSE
+pkg/README.md
+pkg/*.node
+pkg/index.d.ts

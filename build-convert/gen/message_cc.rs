@@ -1,5 +1,3 @@
-use lib_ruby_parser_nodes::MessageField;
-
 pub(crate) struct MessageCc<'a> {
     messages: &'a [lib_ruby_parser_nodes::Message],
 }

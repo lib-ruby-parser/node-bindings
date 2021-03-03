@@ -168,6 +168,7 @@ jobs:
           cp win32.node/ruby_parser.node pkg/win32.node
           cp LICENSE pkg/
           cp README.md pkg/
+          cp types.d.ts pkg/index.d.ts
           cd pkg
 
           npm version "$GITHUB_TAG" --no-git-tag-version

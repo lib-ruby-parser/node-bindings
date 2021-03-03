@@ -15,7 +15,7 @@ namespace lib_ruby_parser_node
             env,
             "Diagnostic",
             {
-                InstanceValue("name", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
+                InstanceValue("level", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
                 InstanceValue("message", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
                 InstanceValue("rendered", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
                 InstanceValue("loc", env.Null(), (napi_property_attributes)(napi_writable | napi_enumerable | napi_configurable)),
