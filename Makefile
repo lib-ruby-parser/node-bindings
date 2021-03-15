@@ -29,7 +29,7 @@ ifeq ($(UNAME_S), Darwin)
 	NODE_FILE_NAME = darwin.node
 endif
 
-VERSION = 3.0.0-3.6
+VERSION = 3.0.0-3.7
 
 ifndef BUILD_ENV
 	BUILD_ENV = debug

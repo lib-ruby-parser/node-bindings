@@ -25,11 +25,11 @@ namespace lib_ruby_parser_node
             return this->callback.Env();
         }
 
-        virtual Result rewrite(std::string encoding, lib_ruby_parser::Bytes input)
+        Result rewrite(const std::string &encoding, const lib_ruby_parser::Bytes &input) override
         {
             Napi::Value response = this->callback.Call({
                 Napi::String::New(env(), encoding),
-                convert(std::move(input), env()),
+                convert(input.clone(), env()),
             });
 
             if (response.IsString())

@@ -32,6 +32,9 @@ namespace lib_ruby_parser_node {{
         return std::visit([env](auto &&variant) -> Napi::Value {{
             using T = std::decay_t<decltype(variant)>;
             {comparisons}
+
+            // Technically impossible
+            return env.Null();
         }}, diagnostic_message->variant);
     }}
 
