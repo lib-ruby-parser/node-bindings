@@ -1,14 +1,14 @@
-pub(crate) struct NodeCc<'a> {
+pub(crate) struct NodeCpp<'a> {
     nodes: &'a [lib_ruby_parser_nodes::Node],
 }
 
-impl<'a> NodeCc<'a> {
+impl<'a> NodeCpp<'a> {
     pub(crate) fn new(nodes: &'a [lib_ruby_parser_nodes::Node]) -> Self {
         Self { nodes }
     }
 
     pub(crate) fn write(&self) {
-        std::fs::write("../src/node.cc", self.contents()).unwrap();
+        std::fs::write("../src/node.cpp", self.contents()).unwrap();
     }
 
     fn contents(&self) -> String {

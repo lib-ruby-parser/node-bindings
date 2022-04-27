@@ -1,5 +1,5 @@
-#include "magic_comment.h"
-#include "loc.h"
+#include "magic_comment.hpp"
+#include "loc.hpp"
 
 namespace lib_ruby_parser_node
 {

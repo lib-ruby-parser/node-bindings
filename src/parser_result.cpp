@@ -1,10 +1,10 @@
-#include "parser_result.h"
-#include "node.h"
-#include "token.h"
-#include "diagnostic.h"
-#include "comment.h"
-#include "magic_comment.h"
-#include "input.h"
+#include "parser_result.hpp"
+#include "node.hpp"
+#include "token.hpp"
+#include "diagnostic.hpp"
+#include "comment.hpp"
+#include "magic_comment.hpp"
+#include "input.hpp"
 
 namespace lib_ruby_parser_node
 {

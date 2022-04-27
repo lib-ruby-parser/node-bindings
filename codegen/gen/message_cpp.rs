@@ -1,14 +1,14 @@
-pub(crate) struct MessageCc<'a> {
+pub(crate) struct MessageCpp<'a> {
     messages: &'a [lib_ruby_parser_nodes::Message],
 }
 
-impl<'a> MessageCc<'a> {
+impl<'a> MessageCpp<'a> {
     pub(crate) fn new(messages: &'a [lib_ruby_parser_nodes::Message]) -> Self {
         Self { messages }
     }
 
     pub(crate) fn write(&self) {
-        std::fs::write("../src/message.cc", self.contents()).unwrap();
+        std::fs::write("../src/message.cpp", self.contents()).unwrap();
     }
 
     fn contents(&self) -> String {

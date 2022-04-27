@@ -1,5 +1,5 @@
-#include "comment.h"
-#include "loc.h"
+#include "comment.hpp"
+#include "loc.hpp"
 
 namespace lib_ruby_parser_node
 {

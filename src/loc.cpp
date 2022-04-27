@@ -1,6 +1,6 @@
-#include "loc.h"
-#include "input.h"
-#include "bytes.h"
+#include "loc.hpp"
+#include "input.hpp"
+#include "bytes.hpp"
 
 namespace lib_ruby_parser_node
 {

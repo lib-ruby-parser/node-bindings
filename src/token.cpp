@@ -1,6 +1,6 @@
-#include "token.h"
-#include "bytes.h"
-#include "loc.h"
+#include "token.hpp"
+#include "bytes.hpp"
+#include "loc.hpp"
 
 namespace lib_ruby_parser_node
 {

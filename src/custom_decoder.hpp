@@ -2,8 +2,8 @@
 #define LIB_RUBY_PARSER_NODE_CUSTOM_DECODER_H
 
 #include <napi.h>
-#include "lib-ruby-parser.h"
-#include "bytes.h"
+#include "lib-ruby-parser.hpp"
+#include "bytes.hpp"
 
 namespace lib_ruby_parser_node
 {

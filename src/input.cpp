@@ -1,4 +1,4 @@
-#include "input.h"
+#include "input.hpp"
 
 namespace lib_ruby_parser_node
 {
@@ -10,7 +10,8 @@ namespace lib_ruby_parser_node
         return Napi::External<void>::New(
             env,
             ptr,
-            [](Napi::Env, void *input) {
+            [](Napi::Env, void *input)
+            {
                 delete new lib_ruby_parser::Input(input);
             });
     }

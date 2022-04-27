@@ -1,4 +1,4 @@
-#include "string.h"
+#include "string.hpp"
 
 namespace lib_ruby_parser_node
 {

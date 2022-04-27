@@ -1,7 +1,7 @@
-#include "diagnostic.h"
-#include "loc.h"
-#include "message.h"
-#include "convert/string.h"
+#include "diagnostic.hpp"
+#include "loc.hpp"
+#include "message.hpp"
+#include "convert/string.hpp"
 
 namespace lib_ruby_parser_node
 {

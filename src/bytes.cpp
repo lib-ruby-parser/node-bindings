@@ -1,4 +1,4 @@
-#include "bytes.h"
+#include "bytes.hpp"
 
 namespace lib_ruby_parser_node
 {

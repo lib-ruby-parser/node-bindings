@@ -1,14 +1,14 @@
-pub(crate) struct MessageH<'a> {
+pub(crate) struct MessageHpp<'a> {
     _messages: &'a [lib_ruby_parser_nodes::Message],
 }
 
-impl<'a> MessageH<'a> {
+impl<'a> MessageHpp<'a> {
     pub(crate) fn new(_messages: &'a [lib_ruby_parser_nodes::Message]) -> Self {
         Self { _messages }
     }
 
     pub(crate) fn write(&self) {
-        std::fs::write("../src/message.h", self.contents()).unwrap();
+        std::fs::write("../src/message.hpp", self.contents()).unwrap();
     }
 
     fn contents(&self) -> String {
@@ -17,7 +17,7 @@ impl<'a> MessageH<'a> {
 #define LIB_RUBY_PARSER_NODE_MESSAGE_H
 
 #include <napi.h>
-#include \"lib-ruby-parser.h\"
+#include \"lib-ruby-parser.hpp\"
 
 namespace lib_ruby_parser_node
 {{

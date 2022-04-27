@@ -1,4 +1,4 @@
-#include "size_t.h"
+#include "size_t.hpp"
 
 namespace lib_ruby_parser_node
 {

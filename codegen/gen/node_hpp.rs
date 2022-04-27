@@ -1,14 +1,14 @@
-pub(crate) struct NodeH<'a> {
+pub(crate) struct NodeHpp<'a> {
     _nodes: &'a [lib_ruby_parser_nodes::Node],
 }
 
-impl<'a> NodeH<'a> {
+impl<'a> NodeHpp<'a> {
     pub(crate) fn new(_nodes: &'a [lib_ruby_parser_nodes::Node]) -> Self {
         Self { _nodes }
     }
 
     pub(crate) fn write(&self) {
-        std::fs::write("../src/node.h", self.contents()).unwrap();
+        std::fs::write("../src/node.hpp", self.contents()).unwrap();
     }
 
     fn contents(&self) -> String {
@@ -17,7 +17,7 @@ impl<'a> NodeH<'a> {
 #define LIB_RUBY_PARSER_NODE_NODE_H
 
 #include <napi.h>
-#include \"lib-ruby-parser.h\"
+#include \"lib-ruby-parser.hpp\"
 
 namespace lib_ruby_parser_node
 {{

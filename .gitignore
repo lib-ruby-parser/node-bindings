@@ -1,15 +1,15 @@
 build/
 node_modules/
 package-lock.json
-build-convert/target
-build-convert/Cargo.lock
-src/node.h
-src/node.cc
-src/message.h
-src/message.cc
+codegen/target
+codegen/Cargo.lock
+src/node.hpp
+src/node.cpp
+src/message.hpp
+src/message.cpp
 
 lib-ruby-parser.a
-src/lib-ruby-parser.h
+src/lib-ruby-parser.hpp
 
 types.d.ts
 

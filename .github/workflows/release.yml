@@ -75,7 +75,7 @@ jobs:
       - name: install node
         uses: actions/setup-node@v2
         with:
-          node-version: 15
+          node-version: 18
           registry-url: 'https://registry.npmjs.org'
 
       - name: install rust
@@ -90,7 +90,7 @@ jobs:
         run: |
           make setup
           make download-cpp-bindings
-          make generate-node-bindings
+          make codegen
 
           make configure
           make build
@@ -134,7 +134,7 @@ jobs:
           override: true
 
       - name: generate types.d.ts
-        run: make generate-node-bindings
+        run: make codegen
 
       - name: save types.d.ts file as artifact
         uses: actions/upload-artifact@v1
@@ -154,7 +154,7 @@ jobs:
       - name: install node
         uses: actions/setup-node@v2
         with:
-          node-version: 15
+          node-version: 18
           registry-url: 'https://registry.npmjs.org'
 
       - name: download linux artifact
@@ -232,7 +232,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [ '10', '12', '14', '15' ]
+        node: [ '12', '14', '16', '17', '18' ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     steps:
       - name: checkout
@@ -294,7 +294,7 @@ jobs:
       - name: install node
         uses: actions/setup-node@v2
         with:
-          node-version: 15
+          node-version: 18
           registry-url: 'https://registry.npmjs.org'
 
       - name: publish

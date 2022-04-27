@@ -2,8 +2,8 @@
 #define LIB_RUBY_PARSER_NODE_BYTES_H
 
 #include <napi.h>
-#include "lib-ruby-parser.h"
-#include "result.h"
+#include "lib-ruby-parser.hpp"
+#include "result.hpp"
 
 namespace lib_ruby_parser_node
 {
