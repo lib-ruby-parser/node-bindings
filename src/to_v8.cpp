@@ -88,6 +88,8 @@ Napi::Value ToV8<lib_ruby_parser::ErrorLevel>(lib_ruby_parser::ErrorLevel value,
         return Napi::String::New(env, "warning");
     case lib_ruby_parser::ErrorLevel::ERROR:
         return Napi::String::New(env, "error");
+    default:
+        return Napi::String::New(env, "<INTERNAL ERROR, PLEASE REPORT A BUG>");
     }
 }
 
@@ -208,6 +210,8 @@ Napi::Value ToV8<lib_ruby_parser::CommentType>(lib_ruby_parser::CommentType valu
         return Napi::String::New(env, "document");
     case lib_ruby_parser::CommentType::UNKNOWN:
         return Napi::String::New(env, "unknown");
+    default:
+        return Napi::String::New(env, "<INTERNAL ERROR, PLEASE REPORT A BUG>");
     }
 }
 
@@ -253,6 +257,8 @@ Napi::Value ToV8<lib_ruby_parser::MagicCommentKind>(lib_ruby_parser::MagicCommen
         return Napi::String::New(env, "warn_indent");
     case lib_ruby_parser::MagicCommentKind::SHAREABLE_CONSTANT_VALUE:
         return Napi::String::New(env, "shareable_constant_value");
+    default:
+        return Napi::String::New(env, "<INTERNAL ERROR, PLEASE REPORT A BUG>");
     }
 }
 

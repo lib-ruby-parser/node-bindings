@@ -28,7 +28,7 @@
             "conditions": [
                 ['OS=="mac"', { "libraries": ["../lib-ruby-parser.a"] }],
                 ['OS=="linux"', { "libraries": ["../lib-ruby-parser.a"] }],
-                ['OS=="win"', { "libraries": ["../lib-ruby-parser.lib"] }],
+                ['OS=="win"', { "libraries": ["../lib-ruby-parser.lib", "bcrypt.lib"] }],
             ]
         }
     ]
