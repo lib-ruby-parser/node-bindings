@@ -74,5 +74,5 @@ clean:
 	rm -f $(CLEAN)
 
 download-cpp-bindings:
-	wget -q $(HEADER_URL) -O src/lib-ruby-parser.hpp
-	wget -q $(LIB_URL) -O $(LOCAL_LIB_NAME)
+	$(call download_file, $(HEADER_URL), src/lib-ruby-parser.hpp)
+	$(call download_file, $(LIB_URL), $(LOCAL_LIB_NAME))

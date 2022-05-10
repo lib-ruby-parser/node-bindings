@@ -4,111 +4,45 @@ on:
     tags:
       - 'v*'
 
+defaults:
+  run:
+    shell: bash
+
 env:
   BUILD_ENV: release
 
 jobs:
-  create-release:
-    name: create-release
-    runs-on: ubuntu-latest
-    steps:
-      - name: get version number
-        run: |
-          echo "GITHUB_TAG=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-
-      - name: print version number
-        run: |
-          echo "tag = ${{ env.GITHUB_TAG }}"
-
-      - name: create release on github
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ env.GITHUB_TAG }}
-          release_name: v${{ env.GITHUB_TAG }}
-
-      - name: generate env artifact
-        run: |
-          echo "RELEASE_UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" > artifact-env
-          echo "GITHUB_TAG=$GITHUB_TAG" >> artifact-env
-
-      - name: save env artifact
-        uses: actions/upload-artifact@v1
-        with:
-          name: artifact-env
-          path: artifact-env
-
   build-node-files:
     name: build-node-files
-    needs: ['create-release']
     runs-on: ${{ matrix.build.os }}
-    env:
-      BUILD_ENV: release
     strategy:
       fail-fast: false
       matrix:
         build:
-          - { os: ubuntu-latest, output: linux.node }
-          - { os: macos-latest, output: darwin.node }
-          - { os: windows-latest, output: win32.node }
+          - { os: ubuntu-latest,  output: linux.node  }
+          - { os: macos-latest,   output: darwin.node }
+          - { os: windows-latest, output: win32.node  }
     steps:
-      - name: install wget
-        if: runner.os == 'Windows'
-        shell: bash
-        run: choco install wget --no-progress
-
       - name: checkout
         uses: actions/checkout@v2
-
-      - name: download env artifact
-        uses: actions/download-artifact@v1
-        with:
-          name: artifact-env
-          path: artifact-env
-
-      - name: load env artifact
-        shell: bash
-        run: cat artifact-env/artifact-env >> $GITHUB_ENV
 
       - name: install node
         uses: actions/setup-node@v2
         with:
           node-version: 18
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: install rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          registry-url: 'https://registry.npmjs.com'
 
       - name: build
-        shell: bash
         run: |
           make setup
           make download-cpp-bindings
-          make codegen
+          make do-codegen
 
           make configure
           make build
 
       - name: Run tests
-        shell: bash
-        run: |
-          make test
-
-      - name: upload assets
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ env.RELEASE_UPLOAD_URL }}
-          asset_path: build/Release/ruby_parser.node
-          asset_name: ${{ matrix.build.output }}
-          asset_content_type: application/octet-stream
+        run: make test
 
       - name: save .node file as artifact
         uses: actions/upload-artifact@v1
@@ -118,23 +52,13 @@ jobs:
 
   build-typescript-defs:
     name: build-typescript-defs
-    needs: ['create-release']
     runs-on: ubuntu-latest
-    env:
-      BUILD_ENV: release
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: install rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
       - name: generate types.d.ts
-        run: make codegen
+        run: make do-codegen
 
       - name: save types.d.ts file as artifact
         uses: actions/upload-artifact@v1
@@ -142,10 +66,9 @@ jobs:
           name: types.d.ts
           path: types.d.ts
 
-
   build-package:
     name: build-package
-    needs: ['build-node-files']
+    needs: ['build-node-files', 'build-typescript-defs']
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -181,15 +104,6 @@ jobs:
           name: types.d.ts
           path: types.d.ts
 
-      - name: download env artifact
-        uses: actions/download-artifact@v1
-        with:
-          name: artifact-env
-          path: artifact-env
-
-      - name: load env artifact
-        run: cat artifact-env/artifact-env >> $GITHUB_ENV
-
       - name: build package
         run: |
           ls -l linux.node/
@@ -205,25 +119,16 @@ jobs:
           cp types.d.ts/types.d.ts pkg/index.d.ts
           cd pkg
 
-          npm version "$GITHUB_TAG" --no-git-tag-version
           npm pack
           ls -l
-
-      - name: upload assets
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ env.RELEASE_UPLOAD_URL }}
-          asset_path: pkg/lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
-          asset_name: lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
-          asset_content_type: application/octet-stream
+          mv lib-ruby-parser-*.tgz lib-ruby-parser.tgz
+          ls -l
 
       - name: save .tgz package as artifact
         uses: actions/upload-artifact@v1
         with:
-          name: lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
-          path: pkg/lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
+          name: lib-ruby-parser.tgz
+          path: pkg/lib-ruby-parser.tgz
 
   test-package:
     name: test-package
@@ -244,32 +149,22 @@ jobs:
           node-version: ${{ matrix.node }}
           registry-url: 'https://registry.npmjs.org'
 
-      - name: download env artifact
-        uses: actions/download-artifact@v1
-        with:
-          name: artifact-env
-          path: artifact-env
-
-      - name: load env artifact
-        shell: bash
-        run: cat artifact-env/artifact-env >> $GITHUB_ENV
-
       - name: download .tgz artifact
         uses: actions/download-artifact@v1
         with:
-          name: lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
-          path: lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
+          name: lib-ruby-parser.tgz
+          path: lib-ruby-parser.tgz
 
       - name: test
-        shell: bash
         run: |
+          ls -l
           mkdir test
           cd test
           echo "{}" > package.json
-          npm install ../lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz/lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
+          npm install ../lib-ruby-parser.tgz/lib-ruby-parser.tgz
 
           node -e "console.log(require.resolve('lib-ruby-parser'))"
-          node -e "console.log(require('lib-ruby-parser').parse(new Uint8Array(), {}))"
+          node -e "console.log(require('lib-ruby-parser').parse('2 + 2', '(eval)', () => {}))"
 
   publish-package:
     name: publish-package
@@ -288,8 +183,8 @@ jobs:
       - name: download .tgz artifact
         uses: actions/download-artifact@v1
         with:
-          name: lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
-          path: lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
+          name: lib-ruby-parser.tgz
+          path: lib-ruby-parser.tgz
 
       - name: install node
         uses: actions/setup-node@v2
@@ -298,6 +193,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: publish
-        run: npm publish $PWD/lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz/lib-ruby-parser-${{ env.GITHUB_TAG }}.tgz
+        run: npm publish $PWD/lib-ruby-parser.tgz/lib-ruby-parser.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
