@@ -47,7 +47,7 @@ jobs:
         run: |
           make setup
           make download-cpp-bindings
-          make codegen
+          make do-codegen
 
           make configure
           make build

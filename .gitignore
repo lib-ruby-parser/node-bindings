@@ -1,17 +1,19 @@
 build/
 node_modules/
 package-lock.json
-codegen/target
-codegen/Cargo.lock
-src/node.hpp
-src/node.cpp
-src/message.hpp
-src/message.cpp
+
+codegen/codegen
+# Codegen output
+src/node_to_v8.cpp
+src/message_to_v8.cpp
+types.d.ts
+pkg/nodes.js
+pkg/messages.js
+pkg/tokens.js
 
 lib-ruby-parser.a
 src/lib-ruby-parser.hpp
 
-types.d.ts
 
 pkg/LICENSE
 pkg/README.md

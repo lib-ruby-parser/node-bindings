@@ -2,14 +2,15 @@
     "name": "lib-ruby-parser-dev",
     "version": "0.0.0",
     "description": "bindings to lib-ruby-parser",
-    "dependencies": {
-        "@types/node": "^17.0.29",
+    "devDependencies": {
+        "@types/node": "^17.0.21",
+        "@types/jest": "^27.4.1",
         "lib-ruby-parser": "./pkg/",
-        "node-addon-api": "^4.3.0",
-        "ts-node": "^10.7.0",
-        "typescript": "^4.6.3"
+        "node-addon-api": "^5.0.0",
+        "typescript": "^4.6.4",
+        "ts-jest": "^28.0.2"
     },
     "scripts": {
-        "test": "ts-node test.ts"
+        "test": "jest"
     }
 }

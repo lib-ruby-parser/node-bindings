@@ -47,6 +47,8 @@ ASSET_PREFIX = https://github.com/lib-ruby-parser/cpp-bindings/releases/download
 HEADER_URL = $(ASSET_PREFIX)/lib-ruby-parser.hpp
 LIB_URL = $(ASSET_PREFIX)/$(LIB_ASSET_NAME)
 
+include codegen/build.mk
+
 setup:
 	npm install --ignore-scripts
 	npm install node-gyp --no-save
@@ -56,13 +58,10 @@ setup:
 configure:
 	node ./node_modules/node-gyp/bin/node-gyp.js configure
 
-codegen:
-	cd codegen && cargo build
-
 GYP_OUTPUT = ./build/$(GYP_ENV)/ruby_parser.node
 
 .PHONY: build
-build:
+build: do-codegen
 	node ./node_modules/node-gyp/bin/node-gyp.js build $(NODE_GYP_FLAGS)
 	cp $(GYP_OUTPUT) pkg/$(NODE_FILE_NAME)
 	cp types.d.ts pkg/index.d.ts
@@ -72,9 +71,7 @@ test:
 
 clean:
 	rm -f $(GYP_OUTPUT)
-	rm -f convert_gen.h
-
-# // cpp bindings files
+	rm -f $(CLEAN)
 
 download-cpp-bindings:
 	wget -q $(HEADER_URL) -O src/lib-ruby-parser.hpp

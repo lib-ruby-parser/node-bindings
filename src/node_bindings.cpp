@@ -1,154 +1,156 @@
-#include <tuple>
+#include <iostream>
 #include <napi.h>
+#include <memory>
 #include "lib-ruby-parser.hpp"
-#include "custom_decoder.hpp"
-#include "bytes.hpp"
-#include "result.hpp"
-#include "bytes.hpp"
-#include "input.hpp"
-#include "loc.hpp"
-#include "token.hpp"
-#include "diagnostic.hpp"
-#include "comment.hpp"
-#include "magic_comment.hpp"
-#include "parser_result.hpp"
-#include "node.hpp"
-#include "message.hpp"
+#include "to_v8.hpp"
 
 namespace lib_ruby_parser_node
 {
-    Napi::Value JsThrow(Napi::Env env, const std::string &message)
+    struct NodeValueWithEnv
     {
-        Napi::TypeError::New(env, message).ThrowAsJavaScriptException();
-        return env.Null();
-    }
+        explicit NodeValueWithEnv(napi_value value_, Napi::Env env_) : value(value_), env(env_){};
+        explicit NodeValueWithEnv(Napi::Value value_) : value(value_), env(value_.Env()){};
 
-    class ParserOptions : public lib_ruby_parser::ParserOptions
-    {
-    public:
-        std::shared_ptr<std::string> decode_error;
-
-        static Result<ParserOptions> FromV8(Napi::Value value)
+        Napi::Value ToValue()
         {
-            if (!value.IsObject())
+            if (value == nullptr)
             {
-                return "parser_options must be an object";
-            }
-            Napi::Object object = value.As<Napi::Object>();
-            ParserOptions options;
-
-            options.record_tokens = object.Get("record_tokens").ToBoolean().Value();
-            options.debug = object.Get("debug").ToBoolean().Value();
-
-            Napi::Value buffer_name = object.Get("buffer_name");
-            if (buffer_name.IsString())
-            {
-                options.buffer_name = buffer_name.As<Napi::String>().Utf8Value();
-            }
-            else if (buffer_name.IsUndefined())
-            {
-                // ok, default is used
+                return env.Null();
             }
             else
             {
-                return "buffer_name must be string/undefined";
+                return Napi::Value(env, value);
             }
-
-            Napi::Value custom_decoder = object.Get("custom_decoder");
-            if (custom_decoder.IsFunction())
-            {
-                auto decoder = std::make_unique<JsCustomDecoder>(custom_decoder.As<Napi::Function>());
-                options.decode_error = decoder->error;
-                options.custom_decoder = std::move(decoder);
-            }
-            else if (custom_decoder.IsUndefined())
-            {
-                // ok, default is used
-            }
-            else
-            {
-                return "custom_decoder must be function/undefined";
-            }
-
-            return std::move(options);
         }
+
+        Napi::Env Env()
+        {
+            return env;
+        }
+
+    private:
+        napi_value value;
+        Napi::Env env;
     };
 
-    Result<std::unique_ptr<lib_ruby_parser::ParserResult>> parse(const Napi::CallbackInfo &info)
+    extern "C"
     {
-        if (info.Length() != 2)
+        lib_ruby_parser::DecoderResultBlob decode(
+            void *state,
+            lib_ruby_parser::StringBlob encoding_b,
+            lib_ruby_parser::ByteListBlob input_b)
         {
-            return "Wrong number of arguments (expected 2)";
+            lib_ruby_parser::String encoding = string_from_string_blob(encoding_b);
+            lib_ruby_parser::ByteList input = byte_list_from_byte_list_blob(input_b);
+
+            NodeValueWithEnv *js_state = static_cast<NodeValueWithEnv *>(state);
+            Napi::Env env = js_state->Env();
+            Napi::Value decoder = js_state->ToValue();
+            delete js_state;
+
+            if (!decoder.IsFunction())
+            {
+                return lib_ruby_parser::decoder_result_to_blob(
+                    lib_ruby_parser::DecoderResult::Err(
+                        lib_ruby_parser::InputError::DecodingError(
+                            lib_ruby_parser::String::Copied("`decode` argument is not a function"))));
+            }
+            Napi::Function decoder_f = decoder.As<Napi::Function>();
+
+            Napi::Uint8Array input_a = Napi::Uint8Array::New(env, input.len);
+            for (size_t i = 0; i < input.len; i++)
+            {
+                input_a[i] = input.ptr[i];
+            }
+            Napi::Value decoder_output = decoder_f.Call({
+                Napi::String::New(env, encoding.ptr, encoding.len),
+                input_a,
+            });
+            if (env.IsExceptionPending())
+            {
+                Napi::Error e = env.GetAndClearPendingException();
+                return lib_ruby_parser::decoder_result_to_blob(
+                    lib_ruby_parser::DecoderResult::Err(
+                        lib_ruby_parser::InputError::DecodingError(
+                            lib_ruby_parser::String::Copied(e.Message().c_str()))));
+            }
+            if (!decoder_output.IsBuffer())
+            {
+                return lib_ruby_parser::decoder_result_to_blob(
+                    lib_ruby_parser::DecoderResult::Err(
+                        lib_ruby_parser::InputError::DecodingError(
+                            lib_ruby_parser::String::Copied("`decode` function must return a Buffer"))));
+            }
+            Napi::Uint8Array buffer = decoder_output.As<Napi::Uint8Array>();
+
+            return lib_ruby_parser::decoder_result_to_blob(
+                lib_ruby_parser::DecoderResult::Ok(
+                    lib_ruby_parser::ByteList::Copied(
+                        reinterpret_cast<char *>(buffer.Data()), buffer.ElementLength())));
         }
-
-        UNWRAP_RESULT(bytes, Bytes::FromV8(info[0]));
-        UNWRAP_RESULT(options, ParserOptions::FromV8(info[1]));
-
-        auto decode_error = options.decode_error;
-
-        auto result = lib_ruby_parser::ParserResult::from_source(std::move(bytes), std::move(options));
-
-        if (decode_error)
-        {
-            return std::string(*(decode_error.get()));
-        }
-        return std::move(result);
     }
 
-    Napi::Value js_parse(const Napi::CallbackInfo &info)
+    Napi::Value parse(const Napi::CallbackInfo &info)
     {
         Napi::Env env = info.Env();
 
-        auto result = parse(info);
-        if (result.is_err())
+        if (info.Length() != 4)
         {
-            return JsThrow(env, result.get_err());
-        }
-        return convert(result.get(), env);
-    }
-
-    Result<lib_ruby_parser::Bytes> bytes_to_utf8_lossy(const Napi::CallbackInfo &info)
-    {
-        if (info.Length() != 1)
-        {
-            return "Wrong number of arguments (expected 1)";
+            // 1 argument is `objects` that is passed implicitly by a wrapper function
+            Napi::TypeError::New(env, "Expected 3 arguments").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        UNWRAP_RESULT(bytes, Bytes::FromV8(info[0]));
-
-        return std::move(bytes);
-    }
-
-    Napi::Value js_bytes_to_utf8_lossy(const Napi::CallbackInfo &info)
-    {
-        auto env = info.Env();
-
-        auto result = bytes_to_utf8_lossy(info);
-        if (result.is_err())
+        if (!info[0].IsString())
         {
-            return JsThrow(env, result.get_err());
+            Napi::TypeError::New(env, "`input` argument must be a String").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        auto bytes = result.get();
-        return Napi::String::New(info.Env(), bytes.to_string_lossy());
+        std::string input = info[0].As<Napi::String>().Utf8Value();
+
+        if (!info[1].IsString())
+        {
+            Napi::TypeError::New(env, "`buffer_name` argument must be a String").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        std::string buffer_name = info[1].As<Napi::String>().Utf8Value();
+
+        if (!info[2].IsFunction())
+        {
+            Napi::TypeError::New(env, "`decode` argument must be a function").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        Napi::Value decode_fn = info[2];
+        NodeValueWithEnv *decoder = new NodeValueWithEnv(decode_fn);
+
+        Napi::Object objects = info[3].As<Napi::Object>();
+
+        return ToV8(
+            lib_ruby_parser::parse(
+                lib_ruby_parser::ByteList::Copied(input.c_str(), input.size()),
+                lib_ruby_parser::ParserOptions(
+                    /* 1. filename */
+                    lib_ruby_parser::String::Copied("(eval)"),
+
+                    /* 2. decoder */
+                    lib_ruby_parser::MaybeDecoder::Some(
+                        lib_ruby_parser::Decoder(
+                            decode,
+                            decoder)),
+
+                    /* 3. token_rewriter */
+                    lib_ruby_parser::MaybeTokenRewriter::None(),
+
+                    /* 4. record_tokens */
+                    true)),
+            env, objects);
     }
 
     Napi::Object Init(Napi::Env env, Napi::Object exports)
     {
-        exports.Set(Napi::String::New(env, "parse"),
-                    Napi::Function::New(env, js_parse));
-
-        exports.Set(Napi::String::New(env, "bytes_to_utf8_lossy"),
-                    Napi::Function::New(env, js_bytes_to_utf8_lossy));
-
-        Loc::Init(env, exports);
-        Token::Init(env, exports);
-        Diagnostic::Init(env, exports);
-        Comment::Init(env, exports);
-        MagicComment::Init(env, exports);
-        ParserResult::Init(env, exports);
-
-        InitNodeTypes(env, exports);
-        InitMessageTypes(env, exports);
+        exports.Set(
+            "parse",
+            Napi::Function::New(env, parse));
 
         return exports;
     }
