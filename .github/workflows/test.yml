@@ -17,20 +17,12 @@ defaults:
 jobs:
   test:
     name: run tests
-    runs-on: ${{ matrix.build.os }}
-    env:
-      TARGET: ${{ matrix.build.target }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         node: [ '12', '14', '16', '17', '18' ]
-        build:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: macos-latest
-            target: x86_64-apple-darwin
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
+        os: ['ubuntu-latest', 'macos-latest', 'windows-latest']
     steps:
       - name: checkout
         uses: actions/checkout@v2

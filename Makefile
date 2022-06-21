@@ -14,21 +14,24 @@ else
 endif
 
 ifeq ($(DETECTED_OS), Windows)
-	LIB_ASSET_NAME = libruby_parser_cpp-x86_64-pc-windows-msvc.lib
-	LOCAL_LIB_NAME = lib-ruby-parser.lib
-	NODE_FILE_NAME = win32.node
+	LIB_ASSET_NAME    = libruby_parser_cpp-x86_64-pc-windows-msvc.lib
+	LOCAL_LIB_NAME    = lib-ruby-parser.lib
+	NODE_FILE_NAME    = win32.node
+	CODEGEN_FILE_NAME = codegen-x86_64-pc-windows-msvc
 	EXE = .exe
 endif
 ifeq ($(DETECTED_OS), Linux)
-	LIB_ASSET_NAME = libruby_parser_cpp-x86_64-unknown-linux-gnu.a
-	LOCAL_LIB_NAME = lib-ruby-parser.a
-	NODE_FILE_NAME = linux.node
+	LIB_ASSET_NAME    = libruby_parser_cpp-x86_64-unknown-linux-gnu.a
+	LOCAL_LIB_NAME    = lib-ruby-parser.a
+	NODE_FILE_NAME    = linux.node
+	CODEGEN_FILE_NAME = codegen-x86_64-unknown-linux-gnu
 	EXE =
 endif
 ifeq ($(UNAME_S), Darwin)
-	LIB_ASSET_NAME = libruby_parser_cpp-x86_64-apple-darwin.a
-	LOCAL_LIB_NAME = lib-ruby-parser.a
-	NODE_FILE_NAME = darwin.node
+	LIB_ASSET_NAME    = libruby_parser_cpp-x86_64-apple-darwin.a
+	LOCAL_LIB_NAME    = lib-ruby-parser.a
+	NODE_FILE_NAME    = darwin.node
+	CODEGEN_FILE_NAME = codegen-x86_64-apple-darwin
 	EXE =
 endif
 
