@@ -50,25 +50,9 @@ jobs:
           name: ${{ matrix.build.output }}
           path: build/Release/ruby_parser.node
 
-  build-typescript-defs:
-    name: build-typescript-defs
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: generate types.d.ts
-        run: make do-codegen
-
-      - name: save types.d.ts file as artifact
-        uses: actions/upload-artifact@v1
-        with:
-          name: types.d.ts
-          path: types.d.ts
-
   build-package:
     name: build-package
-    needs: ['build-node-files', 'build-typescript-defs']
+    needs: ['build-node-files']
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -98,25 +82,20 @@ jobs:
           name: win32.node
           path: win32.node
 
-      - name: download types.d.ts artifact
-        uses: actions/download-artifact@v1
-        with:
-          name: types.d.ts
-          path: types.d.ts
+      - name: do do-codegen
+        run: make do-codegen
 
       - name: build package
         run: |
           ls -l linux.node/
           ls -l darwin.node/
           ls -l win32.node/
-          ls -l types.d.ts/
 
           cp linux.node/ruby_parser.node pkg/linux.node
           cp darwin.node/ruby_parser.node pkg/darwin.node
           cp win32.node/ruby_parser.node pkg/win32.node
           cp LICENSE pkg/
           cp README.md pkg/
-          cp types.d.ts/types.d.ts pkg/index.d.ts
           cd pkg
 
           npm pack
@@ -171,14 +150,8 @@ jobs:
     needs: ['test-package']
     runs-on: ubuntu-latest
     steps:
-      - name: download env artifact
-        uses: actions/download-artifact@v1
-        with:
-          name: artifact-env
-          path: artifact-env
-
-      - name: load env artifact
-        run: cat artifact-env/artifact-env >> $GITHUB_ENV
+      - name: checkout
+        uses: actions/checkout@v2
 
       - name: download .tgz artifact
         uses: actions/download-artifact@v1
