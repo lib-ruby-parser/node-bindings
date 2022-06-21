@@ -32,7 +32,7 @@ ifeq ($(UNAME_S), Darwin)
 	EXE =
 endif
 
-VERSION = 4.0.2+ruby-3.1.1
+VERSION = 4.0.3+ruby-3.1.1
 
 ifndef BUILD_ENV
 	BUILD_ENV = debug
